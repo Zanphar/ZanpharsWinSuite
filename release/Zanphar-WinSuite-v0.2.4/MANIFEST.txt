@@ -1,0 +1,80 @@
+Zanphar's WinSuite - release manifest
+
+suite version : 0.2.4
+package       : Zanphar-WinSuite-v0.2.4.zip
+generated     : 2026-10-24T18:41:16-05:00
+programs      : 6
+total size    : 8.26 MiB (8,664,297 bytes)
+
+Every program in this package was built by build_all.bat as a static,
+self-contained x86-64 executable: the C++ runtime is linked in, so no
+MinGW or Visual C++ redistributable is needed, and that build refuses to
+produce an output that depends on one. Only Windows-shipped DLLs remain.
+
+------------------------------------------------------------------------------
+PROGRAMS (6)
+------------------------------------------------------------------------------
+
+Browser Cleaner
+  file         : BrowserCleaner.exe
+  version      : 1.0.0.0 (product 1.0.0.0)
+  size         : 1,325,056 bytes (1.26 MiB)
+  description  : Browser Cleaner - Anti-Tracking
+  publisher    : Charles McDonald
+  sha256       : f7f9c63fd31927042cea3380042d84e732b79f969a6dd5a4d4eecab1a121e2d0
+
+DNS Protect
+  file         : DNSProtect.exe
+  version      : 1.0.0.0 (product 1.0.0)
+  size         : 1,384,960 bytes (1.32 MiB)
+  description  : Protects the system DNS settings from unauthorized changes
+  publisher    : Charles McDonald
+  sha256       : a0cb382240bf1b199d1d1b93173836fd393715ab6176047487fb76fd303b02fb
+
+Smart RAM
+  file         : SmartRAM.exe
+  version      : 1.0.0.0 (product 1.0)
+  size         : 408,576 bytes (399.0 KiB)
+  description  : Monitor and release memory
+  publisher    : Charles McDonald
+  sha256       : 53ad45b406a745008ba372a68ae46d7cc55d3ef981aedddf2825ce1f7ab98655
+
+System Turbo
+  file         : SystemTurbo.exe
+  version      : 1.0.0.0 (product 1.0.0)
+  size         : 1,375,232 bytes (1.31 MiB)
+  description  : Applies reversible performance tweaks and reports memory/CPU usage
+  publisher    : Charles McDonald
+  sha256       : 41c8381d74dc473317356269a83b2d8638ebfe86a9be583ec5323036c84021ba
+
+Zanphar's WinSuite
+  file         : WinSuiteAgent.exe
+  version      : 1.0.0.0 (product 1.0.0.0)
+  size         : 1,481,591 bytes (1.41 MiB)
+  description  : Zanphar's WinSuite - task rule agent
+  publisher    : Charles McDonald
+  sha256       : 4f0c44e5086a285821da3ee37f68b83038e24045d11488489303fa29ace480ae
+
+Zanphar's WinSuite
+  file         : ZanpharsWinSuite.exe
+  version      : 1.0.0.0 (product 1.0.0.0)
+  size         : 2,688,882 bytes (2.56 MiB)
+  description  : Zanphar's WinSuite - native Windows PC care
+  publisher    : Charles McDonald
+  sha256       : 6b59cd979fdd4bbca79007ef7f4de1d2b8d2cc3c78a5b18cc79bc76cb0c044c1
+
+------------------------------------------------------------------------------
+DOCUMENTS (3)
+------------------------------------------------------------------------------
+  README.md
+  CHANGES.md
+  LICENSE.md
+
+------------------------------------------------------------------------------
+VERIFY
+------------------------------------------------------------------------------
+  sha256sum -c SHA256SUMS.txt            (Git Bash / MSYS2 / Linux)
+  certutil -hashfile <file> SHA256       (cmd.exe, one file at a time)
+  Get-FileHash -Algorithm SHA256 .\<file> (PowerShell)
+
+  The archive itself: sha256sum -c <package>.zip.sha256 (in release\)

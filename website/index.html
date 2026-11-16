@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zanphar's WinSuite — fourteen Windows tools in one native window</title>
+<meta name="description" content="Zanphar's WinSuite is a native Win32 toolbox for Windows 10 and 11: cleanup, DNS, gaming networking, services, tasks, memory and startup control in one window. No installer, no runtime, no telemetry.">
+<meta name="theme-color" content="#0d1015">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/site.css">
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+</head>
+<body data-page="home">
+<a class="skip" href="#main">Skip to content</a>
+<div class="shell">
+  <aside class="rail">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-name">Zanphar's<strong>WinSuite</strong></span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="nav" id="site-nav" aria-label="Sections">
+      <a href="index.html" data-nav="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>Home</a>
+      <a href="features.html" data-nav="features"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Features</a>
+      <a href="screenshots.html" data-nav="screenshots"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Screenshots</a>
+      <a href="download.html" data-nav="download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg>Download</a>
+      <a href="changelog.html" data-nav="changelog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>Changelog</a>
+      <a href="license.html" data-nav="license"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="m9 14 2 2 4-4"/></svg>Licence</a>
+      <a href="privacy.html" data-nav="privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>Privacy</a>
+    </nav>
+    <div class="rail-foot">
+      <strong>Version 0.2.4</strong>
+      <p>Native Win32 &middot; no telemetry</p>
+    </div>
+  </aside>
+
+  <main id="main">
+    <header class="reveal">
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Version 0.2.4 &middot; Windows 10 &amp; 11 &middot; x64</p>
+      <h1>Fourteen PC tools.<br>One <span class="accent">native window</span>.</h1>
+      <p class="lead">Cleanup, DNS, gaming latency, services, tasks, memory and startup control — rebuilt from scratch in plain C++ and Win32. Under three megabytes, no installer, no runtime, no telemetry, and every change journaled so Revert puts it back exactly.</p>
+      <div class="actions">
+        <a class="btn" href="download.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg>
+          Download 0.2.4
+        </a>
+        <a class="btn ghost" href="features.html">See every page</a>
+        <a class="btn ghost" href="screenshots.html">Real screenshots</a>
+      </div>
+      <ul class="meta">
+        <li>One 2.5 MB executable</li>
+        <li>Nothing runs in the background</li>
+        <li>BSD 3-Clause, source included</li>
+        <li>No account, no key, no ads</li>
+      </ul>
+    </header>
+
+    <figure class="shot hero reveal">
+      <img src="assets/img/pages/dashboard.png" width="1002" height="733" alt="The WinSuite dashboard: RAM, CPU and disk meters, this PC's specifications, a storage volume list and quick job buttons.">
+      <figcaption><span><strong>Dashboard</strong> — live meters, this PC's specs, every volume, and the two quick jobs</span><a href="screenshots.html">All screenshots</a></figcaption>
+    </figure>
+
+    <section class="section reveal" aria-labelledby="numbers">
+      <h2 id="numbers" class="visually-hidden">The suite in numbers</h2>
+      <div class="stats">
+        <div class="stat"><strong>14</strong><span>pages, one window</span></div>
+        <div class="stat"><strong>4</strong><span>engines inside it</span></div>
+        <div class="stat"><strong>2.5 MB</strong><span>single executable</span></div>
+        <div class="stat"><strong>0</strong><span>third-party DLLs</span></div>
+      </div>
+    </section>
+
+    <section class="section reveal" aria-labelledby="what">
+      <div class="section-head">
+        <div>
+          <h2 id="what">Everything in one window</h2>
+          <p>Fourteen pages in one visual language, one elevation prompt and one settings file. Nothing has to be started separately, and nothing is left running when the window closes.</p>
+        </div>
+        <a href="features.html">Feature detail →</a>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <h3><span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 4h6M6 7l1 13h10l1-13"/><path d="M10 11v5M14 11v5"/></svg></span>Cleanup that asks first</h3>
+          <p>Temporary files, Windows Update, prefetch and crash caches measured on open. Downloads stays unticked, personal targets name their file count, and whatever you clear goes to the Recycle Bin.</p>
+          <span class="tag">rescan &middot; cancel &middot; remembered ticks</span>
+        </article>
+        <article class="card">
+          <h3><span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17c4 0 4-10 8-10s4 10 8 10"/><circle cx="4" cy="17" r="1.6"/><circle cx="20" cy="17" r="1.6"/></svg></span>A gaming connection you can measure</h3>
+          <p>Nagle off on every adapter, throttling and responsiveness off, the Games task profile on. The latency card pings a host you choose, and applying the profile takes the baseline and the after-reading by itself.</p>
+          <span class="tag">before / after &middot; ms and packet loss</span>
+        </article>
+        <article class="card">
+          <h3><span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></span>Services under control</h3>
+          <p>All 310 installed services with their start type and state, four start types as chips, Start and Stop on every ticked row at once, and New, Edit and Delete for your own entries.</p>
+          <span class="tag">bulk ticks &middot; search &middot; Windows components protected</span>
+        </article>
+        <article class="card">
+          <h3><span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18V9M9 18V5M14 18v-6M19 18v-9"/><path d="M3 21h18"/></svg></span>A Task Manager that remembers</h3>
+          <p>Every process with its pid, affinity and priority. End a task politely or force it, start a new one, and save affinity and priority rules that follow the program into every future run.</p>
+          <span class="tag">per-core affinity &middot; rules kept across boots</span>
+        </article>
+        <article class="card">
+          <h3><span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.5 2.4 2.5 13.6 0 16M12 4c-2.5 2.4-2.5 13.6 0 16"/></svg></span>DNS you can trust</h3>
+          <p>Every adapter, every resolver, one provider applied to all of them — and a watchdog that rewrites the servers 1.5 seconds after anything changes them.</p>
+          <span class="tag">Google &middot; Cloudflare &middot; OpenDNS &middot; Quad9</span>
+        </article>
+        <article class="card">
+          <h3><span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="7" width="16" height="10" rx="2"/><path d="M8 11v2M12 11v2M16 11v2"/></svg></span>Memory and Game Booster</h3>
+          <p>Live memory figures, regular and deep cleans, Smart RAM's automatic threshold, plus System Turbo's profile as the first row of Game Booster — no copying values from somewhere else.</p>
+          <span class="tag">65–95% thresholds &middot; idle clean &middot; revert</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="section reveal" aria-labelledby="look">
+      <div class="section-head">
+        <div>
+          <h2 id="look">A look inside</h2>
+          <p>These are captures of the shipped build, not mockups — the same layout at 1024 × 768 of design space, scaled with the display.</p>
+        </div>
+        <a href="screenshots.html">Full gallery →</a>
+      </div>
+      <div class="grid two">
+        <figure class="shot">
+          <img src="assets/img/pages/cleanup.png" width="1002" height="733" alt="Cleanup page listing temporary files, Windows Update downloads, prefetch and crash dumps with per-row sizes and tick boxes." loading="lazy">
+          <figcaption><strong>Cleanup</strong><span>Measured on open</span></figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="assets/img/pages/networking.png" width="1008" height="729" alt="Internet and networking page with a gaming profile summary, a latency check card and four tweak rows." loading="lazy">
+          <figcaption><strong>Internet &amp; networking</strong><span>Gaming profile + latency</span></figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="assets/img/pages/game-booster.png" width="1002" height="733" alt="Game Booster page with the System Turbo profile row, four gaming tweaks and the background-services list, each row with its own switch." loading="lazy">
+          <figcaption><strong>Game Booster</strong><span>Every row controllable here</span></figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="assets/img/pages/dns.png" width="1002" height="733" alt="DNS page showing provider chips, a watchdog card and a scrollable list of network adapters with their resolvers." loading="lazy">
+          <figcaption><strong>DNS</strong><span>Adapters scroll to all ten</span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section reveal" aria-labelledby="how">
+      <div class="section-head">
+        <div>
+          <h2 id="how">How it works</h2>
+          <p>There is no installer, no service and no first-run wizard. Unzip it, run it, close it.</p>
+        </div>
+      </div>
+      <div class="steps">
+        <article class="step">
+          <h3>Download and unzip</h3>
+          <p>One archive, six executables and three documents. Put the folder anywhere you like; there is nothing to register and nothing to uninstall later.</p>
+        </article>
+        <article class="step">
+          <h3>Run it, elevate once</h3>
+          <p>The main window runs as a standard user. Pages that change the machine ask once and restart elevated, rather than running at reduced rights behind your back.</p>
+        </article>
+        <article class="step">
+          <h3>Change, measure, revert</h3>
+          <p>Values are read and saved with their type before they change. Revert restores exactly what was there; a value another tool set is shown but never claimed.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section reveal" aria-labelledby="built">
+      <div class="section-head">
+        <div>
+          <h2 id="built">Built like a tool, not a platform</h2>
+          <p>Roughly 8,000 lines of C++ across the suite and its four engines, compiled statically so each executable depends only on DLLs Windows itself provides.</p>
+        </div>
+        <a href="privacy.html">Privacy detail →</a>
+      </div>
+      <div class="grid two">
+        <article class="card">
+          <h3>Native from the pixels up</h3>
+          <p>GDI+ drawing, Win32 messages, DPI-aware layout. No Electron, no WebView, no runtime, no auto-updater, no background helper unless you save a task rule.</p>
+        </article>
+        <article class="card">
+          <h3>Nothing phones home</h3>
+          <p>No analytics, no crash reporting, no licence check. The only network traffic the suite makes is the latency check you press and the DNS resolver you choose.</p>
+        </article>
+        <article class="card">
+          <h3>Every change is reversible</h3>
+          <p>Registry values are journaled with their type and original data. Revert puts them back, and a restart re-reads them the way Windows intends.</p>
+        </article>
+        <article class="card">
+          <h3>Open, and licensed plainly</h3>
+          <p>The full source builds with MinGW-w64 and one batch file. BSD 3-Clause, © 2026 Charles McDonald — the same agreement the Settings page shows read-only.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="cta reveal">
+      <div>
+        <h2>Take the whole toolbox</h2>
+        <p>Version 0.2.4 &middot; Windows 10/11 x64 &middot; no installer &middot; checksums published with every build.</p>
+      </div>
+      <div class="actions" style="margin-top:0">
+        <a class="btn" href="download.html">Download the archive</a>
+        <a class="btn ghost" href="changelog.html">What changed</a>
+      </div>
+    </section>
+
+    <footer class="site">
+      <span>Copyright © 2026 Charles McDonald. Licensed under the BSD 3-Clause License.</span>
+      <nav aria-label="Footer">
+        <a href="features.html">Features</a>
+        <a href="download.html">Download</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="license.html">Licence</a>
+        <a href="privacy.html">Privacy</a>
+      </nav>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

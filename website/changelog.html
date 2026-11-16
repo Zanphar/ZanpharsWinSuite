@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Changelog — Zanphar's WinSuite</title>
+<meta name="description" content="What changed in each Zanphar's WinSuite release: 0.2.4, 0.2.3, 0.2.2, 0.2.1, 0.2.0 and 0.1.0.">
+<meta name="theme-color" content="#0d1015">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/site.css">
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+</head>
+<body data-page="changelog">
+<a class="skip" href="#main">Skip to content</a>
+<div class="shell">
+  <aside class="rail">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-name">Zanphar's<strong>WinSuite</strong></span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="nav" id="site-nav" aria-label="Sections">
+      <a href="index.html" data-nav="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>Home</a>
+      <a href="features.html" data-nav="features"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Features</a>
+      <a href="screenshots.html" data-nav="screenshots"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Screenshots</a>
+      <a href="download.html" data-nav="download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg>Download</a>
+      <a href="changelog.html" data-nav="changelog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>Changelog</a>
+      <a href="license.html" data-nav="license"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="m9 14 2 2 4-4"/></svg>Licence</a>
+      <a href="privacy.html" data-nav="privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>Privacy</a>
+    </nav>
+    <div class="rail-foot">
+      <strong>Version 0.2.4</strong>
+      <p>Native Win32 &middot; no telemetry</p>
+    </div>
+  </aside>
+
+  <main id="main">
+    <header class="reveal">
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Release notes</p>
+      <h1>Every change, <span class="accent">in order</span>.</h1>
+      <p class="lead">The suite is versioned as a bundle; each program keeps its own version in its executable. Dates are the days the change landed.</p>
+      <p class="sub" style="margin-top:14px">This page summarises the releases. The complete, line-by-line log is in <a href="docs/CHANGES.txt">CHANGES.md</a>.</p>
+    </header>
+
+    <section class="section reveal" aria-labelledby="v024">
+      <div class="release-head">
+        <span class="ver">0.2.4</span>
+        <span class="pill">Current</span>
+        <span class="pill muted">24 October 2026</span>
+      </div>
+      <div class="prose">
+        <p>Game Booster learns the long list of background services a gaming session does not need, and the notification area becomes somewhere to start the suite and run a memory clean from.</p>
+
+        <h3>Game Booster</h3>
+        <ul>
+          <li><strong>Twenty-eight background services, each its own switch.</strong> Telemetry, the touch keyboard and handwriting panel, Netlogon, Xbox Live, image acquisition, geolocation, the compatibility assistant, WAP push routing, retail demo, Error Reporting, Print Spooler, certificate propagation, enterprise app management, biometrics, the Insider service, the connection broker, Remote Desktop, the portable device enumerator, Parental Control, Connect Now, smart cards, Windows Event Log, Remote Registry, the phone service, downloaded maps, AllJoyn, Fax and Secondary Logon.</li>
+          <li><strong>Live state on every row.</strong> The real service names, their start type and whether they are running, so a row Windows already had off reads <strong>Already off</strong> and one whose services are not installed says so instead of offering a switch that would do nothing.</li>
+          <li><strong>Stopped and set to Manual</strong>, not Disabled, so Windows can still start one when something genuinely asks for it. Start type, running state and the delayed-autostart flag are saved first, and <strong>Revert</strong> puts each back exactly; <strong>Revert all</strong> includes the services. Rows Windows leans on print their state in the warning colour, and none of them is part of the one-click profile.</li>
+        </ul>
+
+        <h3>Notification area</h3>
+        <ul>
+          <li><strong>Show on system tray at startup.</strong> A new Settings option opens the suite straight into the tray with no window on the desktop. If the shell refuses the icon the window is shown instead, so it can never run with nothing to click.</li>
+          <li><strong>Regular and Deep Memory Clean in the tray menu</strong>, beside Open and Exit. Both run exactly what the Memory page runs, including the Settings prompts and the deep clean's administrator restart, so a clean no longer needs the window opened.</li>
+          <li><strong>Toast notifications, switchable.</strong> The balloon that reports a menu-started clean can be turned off for a silent clean; the Memory page still carries the figures. On by default, and a settings file without the key reads as on.</li>
+        </ul>
+
+        <h3>Task Manager</h3>
+        <ul>
+          <li><strong>Saved rules apply without signing out.</strong> Saving a rule starts the helper immediately, so a program launched later in the same session picks up its affinity and priority.</li>
+          <li><strong>Every core is reachable</strong>: the affinity chips wrap instead of running off the card, and both Apply buttons stay inside it.</li>
+          <li><strong>One window only.</strong> A second launch closes the copy already running, and the page is named Task Manager throughout.</li>
+        </ul>
+
+        <h3>Fixes</h3>
+        <ul>
+          <li><strong>A ticked task stays with its own process.</strong> Windows reuses process ids, so a tick held by the number alone could put a stranger in front of <strong>End task</strong>. A tick now carries the process creation time and is dropped the moment that process exits.</li>
+          <li><strong>The start-type chips change the whole selection.</strong> Automatic, Automatic (delayed), Manual and Disabled now act on every ticked service, skip the ones already in that state, and report how many changed.</li>
+          <li><strong>A hidden suite stops working.</strong> Parked in the notification area, the window is hidden rather than minimised, so the page polls kept measuring folders and enumerating processes and services all day. They now run only while a page is on screen.</li>
+          <li><strong>Smaller repairs.</strong> Service ticks survive a change of capitals, and the Game Booster list no longer scrolls past its last row into empty space.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section reveal" aria-labelledby="v023">
+      <div class="release-head">
+        <span class="ver">0.2.3</span>
+        <span class="pill muted">24 October 2026</span>
+      </div>
+      <div class="prose">
+        <p>The Recycle Bin joins Cleanup: listed with its real size, emptied only after a warning, and never armed for you.</p>
+
+        <h3>Cleanup</h3>
+        <ul>
+          <li><strong>The Recycle Bin is a row of its own.</strong> What Windows has already deleted is measured across every drive in one shell call, shown with its size and item count, and marked <strong>permanent</strong>.</li>
+          <li><strong>Unticked, and never ticked for you.</strong> Select all leaves it alone, the row is never written to the saved ticks, and it never comes back armed.</li>
+          <li><strong>One warning before it goes.</strong> Clean selected stops at a confirmation that names the size and the item count and says the items are deleted for good. Emptying then reports only what actually left, so an item another program is holding open is counted as left behind rather than as freed.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section reveal" aria-labelledby="v022">
+      <div class="release-head">
+        <span class="ver">0.2.2</span>
+        <span class="pill muted">24 October 2026</span>
+      </div>
+      <div class="prose">
+        <p>A repackage: the latency check finishes itself, CI refuses a binary or a licence naming the wrong holder, and the archive the site hands out is the one in <code>release\</code>.</p>
+
+        <h3>Internet &amp; networking</h3>
+        <ul>
+          <li><strong>Before and after in one press.</strong> Applying the gaming profile takes the baseline first when there is none, then measures the host again as soon as the values have landed, so the comparison appears without reaching for Measure after. An apply that changed nothing does not ping, and a failed measurement leaves its error on the card without undoing the work.</li>
+        </ul>
+
+        <h3>Release and CI</h3>
+        <ul>
+          <li><strong>Every packaged executable is checked for its publisher.</strong> CI reads the Windows version resource of each <code>.exe</code> in the staged package and fails unless <code>CompanyName</code> is exactly <code>Charles McDonald</code> and the copyright line names him.</li>
+          <li><strong>The packaged licence is checked by content.</strong> The same job fails unless the staged <code>LICENSE.md</code> is BSD 3-Clause with the Charles McDonald copyright line, all three clauses intact and no MIT text anywhere.</li>
+          <li><strong>The download matches the release.</strong> The archive in <code>release\</code>, the copy on the download page and the SHA-256 printed beside it all carry the same figures.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section reveal" aria-labelledby="v021">
+      <div class="release-head">
+        <span class="ver">0.2.1</span>
+        <span class="pill muted">24 October 2026</span>
+      </div>
+      <div class="prose">
+        <p>Scrollable storage and adapter lists, tick-box multi-select across Services and Task Manager, fully controllable Game Booster rows, a measured latency check, and a release step that refuses to publish a muddled folder.</p>
+
+        <h3>Internet &amp; networking</h3>
+        <ul>
+          <li><strong>A new page for gaming latency</strong> with four settings, each with its own switch: Nagle's algorithm off on every configured adapter, network throttling and system responsiveness off, the Games multimedia task profile, and no QoS reservation.</li>
+          <li><strong>Apply profile and Revert all</strong> work over the same journal as the rows, so a set can go on or come off in one press.</li>
+          <li><strong>A latency check</strong> that pings any host or IPv4 address four times on a worker thread, reports average, min–max and packet loss, and compares the before and after readings in milliseconds.</li>
+          <li><strong>The comparison comes with the profile.</strong> Applying the profile with no reading yet measures the baseline before the values change, and applying it with one in hand measures the host again once they land — the after-reading is taken automatically, so the before-and-after appears without a second press.</li>
+        </ul>
+
+        <h3>Game Booster</h3>
+        <ul>
+          <li><strong>Every row is controllable.</strong> A value that was already set by something else used to read Set elsewhere; it can now be turned off, with its original data and type journalled so Revert restores exactly what the other tool had set.</li>
+          <li>System Turbo's profile remains the first row, followed by Game Mode, mouse acceleration, fullscreen optimisations, window animations and transparency.</li>
+        </ul>
+
+        <h3>Cleanup</h3>
+        <ul>
+          <li><strong>Downloads goes to the Recycle Bin</strong>, and cleaning a personal target asks first, naming the file count.</li>
+          <li><strong>Measured as the page opens</strong>, with per-row progress instead of one Scanning label, and a Cancel that leaves unreached rows dimmed rather than empty.</li>
+          <li><strong>Remembered choices:</strong> ticks, the biggest-first or built-in order, and Select all, Clear all and Reset to defaults alongside them.</li>
+        </ul>
+
+        <h3>Services, Task Manager and DNS</h3>
+        <ul>
+          <li><strong>Tick boxes for bulk actions</strong> on Services and Task Manager: Start, Stop, End task and Force end act on every ticked row that needs it, with one prompt and one summary.</li>
+          <li><strong>Search boxes</strong> narrow either list by name as you type.</li>
+          <li><strong>Services editing</strong> — New, Edit and Delete for non-Windows entries — and the four start types as chips.</li>
+          <li><strong>Task rules</strong> keep affinity and priority per program and apply them on later runs through a small agent registered only when a rule is saved.</li>
+          <li><strong>Every adapter on the DNS page is reachable</strong>: the list scrolls a whole card per notch and shows a position bar and count.</li>
+        </ul>
+
+        <h3>Settings and release</h3>
+        <ul>
+          <li><strong>Close to system tray</strong> and <strong>Minimize to system tray</strong>, both off until chosen and remembered.</li>
+          <li><strong>The two clean prompts</strong> can be switched off, and the BSD 3-Clause agreement opens read-only with the copyright line.</li>
+          <li><strong>One package per release folder</strong>, enforced by the release step and by CI, with the packaged README, CHANGES and LICENSE checked byte for byte against the repository.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section reveal" aria-labelledby="v020">
+      <div class="release-head">
+        <span class="ver">0.2.0</span>
+        <span class="pill muted">22 October 2026</span>
+      </div>
+      <div class="prose">
+        <p>The release pipeline arrived: <code>bin\</code> can be turned into a versioned, verifiable archive in one step.</p>
+        <ul>
+          <li><strong><code>release.bat</code></strong> reads the version from <code>VERSION</code>, rebuilds from scratch with <code>/build</code>, stages every executable with the three documents, and writes the archive plus its checksum.</li>
+          <li><strong><code>MANIFEST.txt</code></strong> lists each program's product name, version, size, description, publisher and SHA-256, read from the executable's own version resource.</li>
+          <li><strong><code>SHA256SUMS.txt</code></strong> is <code>sha256sum -c</code> compatible, with LF-only line endings and forward-slash ZIP entries so archives extract correctly on every platform.</li>
+          <li>A failed packaging run no longer leaves a truncated archive next to the good one.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section reveal" aria-labelledby="v010">
+      <div class="release-head">
+        <span class="ver">0.1.0</span>
+        <span class="pill muted">22 October 2026</span>
+      </div>
+      <div class="prose">
+        <p>The first packaged release: the suite window and its four engines build from one script into <code>bin\</code>, with the shared dark, DPI-aware interface and the journaled Revert behaviour that every page still uses.</p>
+      </div>
+    </section>
+
+    <section class="callout reveal" style="margin-top:32px">
+      <strong>Known limitation.</strong> Releases are not byte-for-byte reproducible: the archive stores file timestamps, so rebuilding the same sources yields a different ZIP digest. Rebuild and re-release rather than comparing archive hashes.
+    </section>
+
+    <section class="cta reveal">
+      <div>
+        <h2>Get 0.2.4</h2>
+        <p>The archive this changelog describes, with its checksum published beside it.</p>
+      </div>
+      <div class="actions">
+        <a class="btn" href="download.html">Download</a>
+        <a class="btn ghost" href="docs/CHANGES.txt">Full changelog</a>
+      </div>
+    </section>
+
+    <footer class="site">
+      <span>Copyright © 2026 Charles McDonald. Licensed under the BSD 3-Clause License.</span>
+      <nav aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="download.html">Download</a>
+        <a href="license.html">Licence</a>
+        <a href="privacy.html">Privacy</a>
+      </nav>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

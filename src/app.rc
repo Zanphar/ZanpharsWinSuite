@@ -1,0 +1,44 @@
+// Zanphar's WinSuite - Windows resources
+// Compiled by build.bat with windres into build\app.res.o and linked into the exe.
+//
+// The icon is the app's own mark (rounded accent tile with a dark Z). Explorer,
+// the taskbar, Alt+Tab and the desktop shortcut all read it from this resource,
+// and main.cpp loads the same resource for the window class.
+//
+// The version block fills in the exe's Properties -> Details tab. Bump kVersion in
+// src/main.cpp and the numbers here together when the product version changes.
+
+#include <windows.h>
+
+101 ICON "app.ico"
+
+1 VERSIONINFO
+  FILEVERSION     1,0,0,0
+  PRODUCTVERSION  1,0,0,0
+  FILEFLAGSMASK   0x3fL
+  FILEFLAGS       0x0L
+  FILEOS          VOS_NT_WINDOWS32
+  FILETYPE        VFT_APP
+  FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    // 0409 = US English, 04B0 = Unicode
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName",      "Charles McDonald"
+      VALUE "FileDescription",  "Zanphar's WinSuite - native Windows PC care"
+      VALUE "FileVersion",      "1.0.0.0"
+      VALUE "InternalName",     "ZanpharsWinSuite"
+      VALUE "LegalCopyright",   "Copyright (C) 2026 Charles McDonald. BSD 3-Clause License."
+      VALUE "OriginalFilename", "ZanpharsWinSuite.exe"
+      VALUE "ProductName",      "Zanphar's WinSuite"
+      VALUE "ProductVersion",   "1.0.0.0"
+      VALUE "Comments",         "Native Win32 PC care: cleanup, memory, large files, startup, system report."
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy — Zanphar's WinSuite</title>
+<meta name="description" content="Zanphar's WinSuite has no telemetry, no accounts and no analytics. Here is every file it writes and every packet it sends.">
+<meta name="theme-color" content="#0d1015">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/site.css">
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+</head>
+<body data-page="privacy">
+<a class="skip" href="#main">Skip to content</a>
+<div class="shell">
+  <aside class="rail">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-name">Zanphar's<strong>WinSuite</strong></span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="nav" id="site-nav" aria-label="Sections">
+      <a href="index.html" data-nav="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>Home</a>
+      <a href="features.html" data-nav="features"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Features</a>
+      <a href="screenshots.html" data-nav="screenshots"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Screenshots</a>
+      <a href="download.html" data-nav="download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg>Download</a>
+      <a href="changelog.html" data-nav="changelog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>Changelog</a>
+      <a href="license.html" data-nav="license"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="m9 14 2 2 4-4"/></svg>Licence</a>
+      <a href="privacy.html" data-nav="privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>Privacy</a>
+    </nav>
+    <div class="rail-foot">
+      <strong>Version 0.2.4</strong>
+      <p>Native Win32 &middot; no telemetry</p>
+    </div>
+  </aside>
+
+  <main id="main">
+    <header class="reveal">
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>No telemetry &middot; no accounts</p>
+      <h1>What it stores, and what it <span class="accent">sends</span>.</h1>
+      <p class="lead">The suite has no analytics, no crash reporting, no licence server and no update check. Everything it knows about the machine stays on the machine — and this page lists the whole of it.</p>
+    </header>
+
+    <section class="section reveal" aria-labelledby="not-h">
+      <div class="section-head">
+        <div>
+          <h2 id="not-h">What it never does</h2>
+          <p>No network feature runs unless you press something that needs it.</p>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="card"><h3>No telemetry</h3><p>No usage counters, no feature pings, no device identifiers. There is no endpoint to send them to.</p></article>
+        <article class="card"><h3>No accounts</h3><p>No sign-in, no key, no email address, no activation. The archive runs on an offline machine.</p></article>
+        <article class="card"><h3>No ads or bundles</h3><p>No offers, no partner installs, no browser toolbar. The archive contains what the package table says it does.</p></article>
+        <article class="card"><h3>No background sampling</h3><p>Meters tick while their page is visible. Close the window and the suite stops reading the machine.</p></article>
+      </div>
+    </section>
+
+    <section class="section reveal" aria-labelledby="files-h">
+      <div class="section-head">
+        <div>
+          <h2 id="files-h">What it writes</h2>
+          <p>Only what a page needs to remember your choices.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Where</th><th scope="col">What</th><th scope="col">Why</th></tr></thead>
+          <tbody>
+            <tr><td><code>%LOCALAPPDATA%\ZanpharsWinSuite\settings.ini</code></td><td>Tray options (close, minimise, start in the tray, toast notifications), clean prompts, cleanup ticks and sort order, task rules</td><td>So the suite opens the way you left it</td></tr>
+            <tr><td>Windows registry</td><td>Only the values a page changes, each with its original value and type saved first</td><td>So Revert can put them back exactly</td></tr>
+            <tr><td>Recycle Bin</td><td>Files removed by Cleanup's Downloads target and by Large files</td><td>So a mistake is recoverable</td></tr>
+            <tr><td><code>%ProgramData%\DNSProtect\</code></td><td>The DNS journal and watchdog state, when the standalone program is used</td><td>To restore the previous resolvers</td></tr>
+            <tr><td><code>%ProgramData%\SystemTurbo\</code></td><td>The power plan and service journal, when the standalone program is used</td><td>To restore the previous profile</td></tr>
+            <tr><td><code>%LOCALAPPDATA%\SmartRAM\config.ini</code></td><td>The standalone Smart RAM's automatic clean options</td><td>To keep its settings between runs</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="sub" style="margin-top:14px">Nothing is written to the suite's own folder, so it can live on a read-only USB stick apart from the settings file above.</p>
+    </section>
+
+    <section class="section reveal" aria-labelledby="net-h">
+      <div class="section-head">
+        <div>
+          <h2 id="net-h">What it sends</h2>
+          <p>Two features use the network, and both do exactly one obvious thing.</p>
+        </div>
+      </div>
+      <div class="grid two">
+        <article class="card">
+          <h3>Latency check</h3>
+          <p>Four ICMP echo requests to the host you type — <code>1.1.1.1</code> until you change it — with a one-second timeout each. The replies carry timing only; nothing about your machine is attached.</p>
+        </article>
+        <article class="card">
+          <h3>DNS</h3>
+          <p>Name resolution goes to the resolver you pick, through Windows, exactly as before. The watchdog compares registry values; it does not query the resolver on its own.</p>
+        </article>
+      </div>
+      <div class="callout" style="margin-top:18px">
+        <strong>This website</strong> is static. It carries no analytics of its own, no third-party fonts, no cookies and no tracking pixel; the only script written here is the small file in <code>assets/js</code> that opens the menu and the screenshot viewer. The host that serves these pages counts visits with Cloudflare Web Analytics, a cookie-free beacon the host injects - no identifier is stored on your device and the suite itself never reports anything.
+      </div>
+    </section>
+
+    <section class="section reveal" aria-labelledby="rights-h">
+      <div class="section-head">
+        <div>
+          <h2 id="rights-h">Permissions, in plain words</h2>
+          <p>Administrator rights are asked for once, by the pages that genuinely need them.</p>
+        </div>
+      </div>
+      <ul class="prose" style="margin-top:6px">
+        <li><strong>Standard user:</strong> the window, cleanup of your own caches, browser traces, memory cleaning, large files, startup entries for your account.</li>
+        <li><strong>Administrator:</strong> DNS, Internet &amp; networking, Game Booster's service changes, Deactivate, Services, and ending another user's process.</li>
+        <li><strong>The task agent:</strong> a small window-less executable registered in your own Run key, and only after you save a task rule. Delete the rules and it is unregistered.</li>
+      </ul>
+    </section>
+
+    <section class="cta reveal">
+      <div>
+        <h2>Read the code, not just the promise</h2>
+        <p>The suite is BSD 3-Clause and builds from the tree with one batch file.</p>
+      </div>
+      <div class="actions">
+        <a class="btn" href="download.html">Download</a>
+        <a class="btn ghost" href="license.html">Licence</a>
+      </div>
+    </section>
+
+    <footer class="site">
+      <span>Copyright © 2026 Charles McDonald. Licensed under the BSD 3-Clause License.</span>
+      <nav aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="features.html">Features</a>
+        <a href="download.html">Download</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="license.html">Licence</a>
+      </nav>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+---
+BasedOnStyle: Google
+Standard: c++17
+IndentWidth: 4
+UseTab: Never
+ColumnLimit: 100
+DerivePointerAlignment: false
+PointerAlignment: Left
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AlwaysBreakTemplateDeclarations: Yes
+SeparateDefinitionBlocks: Always
+IncludeBlocks: Preserve
+SortIncludes: CaseSensitive
+AlignTrailingComments: true
+BreakBeforeBraces: Attach

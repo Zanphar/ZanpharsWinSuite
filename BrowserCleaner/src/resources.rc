@@ -1,0 +1,35 @@
+// resources.rc - Win32 resources for BrowserCleaner
+#include <windows.h>
+
+// Leading icon (resource id 1): Explorer, taskbar and title bar pick this up.
+1 ICON "BrowserCleaner.ico"
+
+// Version information block shown in Explorer's file properties dialog.
+1 VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+FILEFLAGSMASK   0x3fL
+FILEFLAGS       0x0L
+FILEOS          0x40004L          // VOS_NT_WINDOWS32
+FILETYPE        0x1L              // VFT_APP
+FILESUBTYPE     0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"          // US English / Unicode
+        BEGIN
+            VALUE "CompanyName",      "Charles McDonald"
+            VALUE "FileDescription",  "Browser Cleaner - Anti-Tracking"
+            VALUE "FileVersion",      "1.0.0.0"
+            VALUE "InternalName",     "BrowserCleaner"
+            VALUE "LegalCopyright",   "Copyright (C) 2026 Charles McDonald. BSD 3-Clause License. Not affiliated with IObit Ltd."
+            VALUE "OriginalFilename", "BrowserCleaner.exe"
+            VALUE "ProductName",      "Browser Cleaner"
+            VALUE "ProductVersion",   "1.0.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

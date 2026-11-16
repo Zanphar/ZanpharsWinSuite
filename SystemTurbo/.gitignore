@@ -1,0 +1,5 @@
+build/
+mingw-override/
+*.exe
+*.o
+obj/

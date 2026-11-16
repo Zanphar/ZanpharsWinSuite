@@ -1,0 +1,43 @@
+// ============================================================================
+//  resources.rc — manifest, version information and the application icon.
+//
+//  MSVC builds define DZP_NO_MANIFEST and hand the manifest to the linker
+//  via /MANIFESTINPUT; MinGW/windres builds embed it here (as the toolchain
+//  default-manifest replacement).
+// ============================================================================
+
+#include <winver.h>
+
+#ifndef DZP_NO_MANIFEST
+1 24 "app.manifest"
+#endif
+
+1 VERSIONINFO
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName",      "Charles McDonald"
+      VALUE "FileDescription",  "Protects the system DNS settings from unauthorized changes"
+      VALUE "FileVersion",      "1.0.0.0"
+      VALUE "InternalName",     "dnsprotect"
+      VALUE "LegalCopyright",   "Copyright (C) 2026 Charles McDonald. BSD 3-Clause License."
+      VALUE "OriginalFilename", "DNSProtect.exe"
+      VALUE "ProductName",      "DNS Protect"
+      VALUE "ProductVersion",   "1.0.0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 0x04B0
+  END
+END
+
+2 ICON "app.ico"

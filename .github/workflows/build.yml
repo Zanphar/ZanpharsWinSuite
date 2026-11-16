@@ -1,0 +1,410 @@
+name: build
+
+# Builds every program in the suite with MinGW-w64 on a clean Windows runner,
+# proves the outputs are self-contained, and packages them with the same single
+# command used locally (`release.bat /build`): nothing but DLLs that ship with
+# Windows may appear in the import tables, and the uploaded ZIP is the one that
+# would be published.
+#
+# Pushing a version tag (v0.2.3) additionally attaches that archive and its
+# SHA-256 to a GitHub release. The same happens when a manual run is given an
+# existing tag, which is how a release is (re)published without pushing:
+# the run checks out that tag and builds it, so the archive always matches
+# the code the tag points at.
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing version tag to publish (e.g. v0.2.3). Leave empty to build the selected ref and publish nothing.'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: MinGW-w64 build, check and package
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out the sources
+        uses: actions/checkout@v7
+        # A manual run given a tag builds that tag, not whatever branch was
+        # selected in the dispatch form.
+        with:
+          # github.event.inputs is null outside workflow_dispatch, so this falls
+          # back to the triggering ref (the tag, for a tag push).
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Install MinGW-w64 (MSYS2, UCRT64)
+        id: msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          # A plain package install is enough and saves the multi-minute full
+          # MSYS2 upgrade the runner does not need.
+          update: false
+          install: mingw-w64-ucrt-x86_64-gcc
+
+      - name: Point the build at the toolchain
+        shell: pwsh
+        # build_all.bat, release.bat and tools\verify_binaries.ps1 all read
+        # MINGW_BIN. The path comes from the action's own output, not a guess.
+        run: |
+          $bin = Join-Path '${{ steps.msys2.outputs.msys2-location }}' 'ucrt64\bin'
+          foreach ($tool in 'g++.exe', 'windres.exe', 'objdump.exe') {
+            if (-not (Test-Path (Join-Path $bin $tool))) {
+              throw "$tool not found in $bin - the MSYS2 install did not complete"
+            }
+          }
+          # UTF-8 without BOM, whatever PowerShell version runs this step:
+          # 5.1's Out-File would write UTF-16 and the runner would not parse it.
+          $utf8 = New-Object System.Text.UTF8Encoding($false)
+          [System.IO.File]::AppendAllText($env:GITHUB_ENV, "MINGW_BIN=$bin`n", $utf8)
+
+      - name: Show the toolchain
+        shell: cmd
+        run: |
+          "%MINGW_BIN%\g++.exe" --version
+          "%MINGW_BIN%\windres.exe" --version
+
+      - name: Build and package the suite
+        shell: cmd
+        # The same one command as on a workstation: release.bat /build runs
+        # build_all.bat /clean (empty bin\ and staging area, then all four
+        # programs) and packages only if that build succeeded. So this step
+        # exercises the build and the release path together, and the archive
+        # it writes cannot contain a binary from an earlier run.
+        # It exits 1 if a project fails to compile, if an output imports
+        # libgcc, libstdc++ or libwinpthread, or if packaging fails.
+        run: |
+          call .\release.bat /build
+          exit /b %ERRORLEVEL%
+
+      - name: Check only one release version exists
+        shell: pwsh
+        # release.bat prunes older packages and fails if one is locked, but the
+        # release job must never publish from a folder holding a second version.
+        # This asserts the exact state it depends on: one package folder, one
+        # archive, one checksum, all named after the version in VERSION.
+        run: |
+          if (-not (Test-Path -LiteralPath release -PathType Container)) {
+            throw 'release\ does not exist - the packaging step did not run'
+          }
+          $version = (Get-Content -LiteralPath VERSION -Raw).Trim()
+          if (-not $version) { throw 'VERSION is empty' }
+          $expected = "Zanphar-WinSuite-v$version"
+
+          $dirs = @(Get-ChildItem -LiteralPath release -Directory -Force |
+                    Where-Object { $_.Name -like 'Zanphar-WinSuite-v*' })
+          $zips = @(Get-ChildItem -LiteralPath release -File -Force -Filter 'Zanphar-WinSuite-v*.zip')
+          $sums = @(Get-ChildItem -LiteralPath release -File -Force -Filter 'Zanphar-WinSuite-v*.zip.sha256')
+
+          if ($dirs.Count -ne 1) {
+            throw "release\ should hold exactly one package folder, found $($dirs.Count): $(($dirs.Name) -join ', ')"
+          }
+          if ($zips.Count -ne 1) {
+            throw "release\ should hold exactly one archive, found $($zips.Count): $(($zips.Name) -join ', ')"
+          }
+          if ($sums.Count -ne 1) {
+            throw "release\ should hold exactly one archive checksum, found $($sums.Count): $(($sums.Name) -join ', ')"
+          }
+          if ($dirs[0].Name -ne $expected) {
+            throw "the package folder is '$($dirs[0].Name)' but VERSION says $version"
+          }
+          if ($zips[0].Name -ne "$expected.zip") {
+            throw "the archive is '$($zips[0].Name)' but VERSION says $version"
+          }
+          if ($sums[0].Name -ne "$expected.zip.sha256") {
+            throw "the checksum is '$($sums[0].Name)' but VERSION says $version"
+          }
+          "one release version: $expected"
+
+      - name: Check the packaged documents match the repository
+        shell: pwsh
+        # The archive's README, CHANGES and LICENSE are copied when the package is
+        # staged. If one is edited after packaging - or a copy is changed in the
+        # staging folder - the download describes a different release from the
+        # source it claims to be. Compare the bytes, not just the file names.
+        run: |
+          $version = (Get-Content -LiteralPath VERSION -Raw).Trim()
+          $pkg = Join-Path 'release' "Zanphar-WinSuite-v$version"
+          if (-not (Test-Path -LiteralPath $pkg -PathType Container)) {
+            throw "the package folder $pkg is missing"
+          }
+          foreach ($doc in 'README.md', 'CHANGES.md', 'LICENSE.md') {
+            $source = Join-Path $PWD $doc
+            $copy = Join-Path $pkg $doc
+            if (-not (Test-Path -LiteralPath $copy -PathType Leaf)) {
+              throw "$doc is missing from the package"
+            }
+            $sourceHash = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash
+            $copyHash = (Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash
+            if ($sourceHash -ne $copyHash) {
+              throw "$doc in the package differs from the repository copy"
+            }
+            "same bytes: $doc"
+          }
+
+      - name: Check the packaged licence is BSD 3-Clause with the Charles McDonald copyright
+        shell: pwsh
+        # The whole suite ships under BSD 3-Clause with Charles McDonald's
+        # copyright, and nothing in this tree is offered under MIT. The parity
+        # step above proves the packaged copy is the repository's; this one
+        # proves what that copy actually says, so a release job can never
+        # publish an archive with the wrong licence or the wrong holder.
+        run: |
+          $version = (Get-Content -LiteralPath VERSION -Raw).Trim()
+          $pkg = Join-Path 'release' "Zanphar-WinSuite-v$version"
+          $licence = Join-Path $pkg 'LICENSE.md'
+          if (-not (Test-Path -LiteralPath $licence -PathType Leaf)) {
+            throw "LICENSE.md is missing from $pkg"
+          }
+          $text = (Get-Content -LiteralPath $licence -Raw) -replace "`r`n", "`n"
+
+          if ($text -notmatch '(?m)^BSD 3-Clause License\s*$') {
+            throw 'the packaged LICENSE.md does not name the BSD 3-Clause License'
+          }
+          if ($text -notmatch 'Copyright \(c\) 2026, Charles McDonald') {
+            throw 'the packaged LICENSE.md does not carry the Copyright (c) 2026, Charles McDonald line'
+          }
+          foreach ($clause in @(
+            'Redistributions of source code must retain the above copyright notice',
+            'Redistributions in binary form must reproduce the above copyright notice',
+            'Neither the name of the copyright holder nor the names of its',
+            'THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"')) {
+            if (-not $text.Contains($clause)) {
+              throw "the packaged LICENSE.md is missing the BSD 3-Clause clause: $clause"
+            }
+          }
+          if ($text -match 'Permission is hereby granted, free of charge') {
+            throw 'the packaged LICENSE.md contains MIT licence text; this suite is BSD 3-Clause only'
+          }
+          'BSD 3-Clause, Copyright (c) 2026, Charles McDonald: LICENSE.md'
+
+      - name: Check every packaged executable names Charles McDonald in its version resource
+        shell: pwsh
+        # The package's executables are what a downloader runs and what Windows
+        # shows under Properties > Details, so the version resource has to agree
+        # with LICENSE.md: CompanyName "Charles McDonald" and a copyright line
+        # that names the same holder. A binary built from a stale .rc, or one
+        # whose resource failed to link, is caught here rather than in the wild.
+        run: |
+          $version = (Get-Content -LiteralPath VERSION -Raw).Trim()
+          $pkg = Join-Path 'release' "Zanphar-WinSuite-v$version"
+          if (-not (Test-Path -LiteralPath $pkg -PathType Container)) {
+            throw "the package folder $pkg is missing"
+          }
+          $exes = @(Get-ChildItem -LiteralPath $pkg -Filter '*.exe' -File | Sort-Object Name)
+          if ($exes.Count -eq 0) {
+            throw "no executables in $pkg"
+          }
+
+          $expected = 'Charles McDonald'
+          $problems = @()
+          foreach ($exe in $exes) {
+            try {
+              $info = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($exe.FullName)
+            } catch {
+              $problems += "$($exe.Name): version resource unreadable - $($_.Exception.Message)"
+              continue
+            }
+            $company = "$($info.CompanyName)".Trim()
+            $copyright = "$($info.LegalCopyright)".Trim()
+            $faults = @()
+            if ($company -ne $expected) {
+              $shown = if ($company) { "'$company'" } else { 'empty' }
+              $faults += "CompanyName is $shown, expected '$expected'"
+            }
+            if (-not $copyright) {
+              $faults += 'LegalCopyright is empty'
+            } elseif ($copyright -notmatch [regex]::Escape($expected)) {
+              $faults += "LegalCopyright does not name $expected ('$copyright')"
+            }
+            if ($faults.Count -gt 0) {
+              $problems += "$($exe.Name): " + ($faults -join '; ')
+              Write-Host "  [FAIL] $($exe.Name)"
+            } else {
+              Write-Host "  [ OK ] $($exe.Name)  $company  -  $copyright"
+            }
+          }
+
+          if ($problems.Count -gt 0) {
+            Write-Host ''
+            foreach ($problem in $problems) { Write-Host "  $problem" }
+            throw "$($problems.Count) executable(s) do not carry the Charles McDonald version resource"
+          }
+          "Charles McDonald in CompanyName and the copyright of $($exes.Count)/$($exes.Count) executable(s)."
+
+      - name: Verify the binaries are self-contained
+        shell: pwsh
+        # Independent check against an allowlist of Windows-provided DLLs:
+        # every *.exe in bin\ must import nothing else.
+        run: ./tools/verify_binaries.ps1 -BinDir bin
+
+      - name: Upload the binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: Zanphar-WinSuite-bin-x64
+          path: bin/*.exe
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload the release archive
+        uses: actions/upload-artifact@v7
+        # Unpacked from release\, the ZIP and its .sha256 land at the root of
+        # this artifact, which is what the release job downloads.
+        with:
+          name: Zanphar-WinSuite-release-zip
+          path: |
+            release/*.zip
+            release/*.zip.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+  # Publishing runs in its own job so the write token it needs is not held by
+  # pull request runs. It publishes the archive the build job produced and
+  # uploaded - it never rebuilds or repackages, so the released ZIP is exactly
+  # the one that passed the checks above.
+  release:
+    name: Publish the release
+    needs: build
+    # Runs for a pushed tag, or for a manual run that named one; a manual run
+    # without a tag only builds and packages. Truthiness, not '!= ""', so a
+    # missing input on push/pull_request (null) cannot make this run.
+    if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && github.event.inputs.tag)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      # The tag being published: the dispatch input when given, otherwise the
+      # ref that triggered the run. github.ref_name alone would be the branch
+      # for a manual run.
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+
+    steps:
+      - name: Check out the sources
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Download the packaged archive
+        uses: actions/download-artifact@v8
+        with:
+          name: Zanphar-WinSuite-release-zip
+          path: release
+
+      - name: Check the tag against VERSION
+        shell: pwsh
+        # The tag names the release and the archive is named after VERSION, so
+        # the two have to agree - otherwise the tag would publish an archive
+        # whose name and manifest contradict it.
+        run: |
+          $tag = $env:TAG
+          if (-not $tag) { throw 'no tag to publish - dispatch with a tag input or push a v* tag' }
+          $version = $tag -replace '^[vV]', ''
+          if ($version -notmatch '^[0-9][0-9A-Za-z.\-]*$') {
+            throw "tag '$tag' does not carry a usable version - expected something like v0.2.0"
+          }
+          $declared = (Get-Content -LiteralPath VERSION -Raw).Trim()
+          if ($declared -ne $version) {
+            throw "tag '$tag' says $version but VERSION says '$declared' - bump VERSION or retag"
+          }
+
+          $utf8 = New-Object System.Text.UTF8Encoding($false)
+          [System.IO.File]::AppendAllText($env:GITHUB_ENV, "SUITE_VERSION=$version`n", $utf8)
+
+      - name: Take the release notes from the changelog
+        shell: pwsh
+        # A release nobody wrote down is a release nobody can read about, and
+        # GitHub's auto-generated notes duplicate what the changelog already
+        # says. The version must have its own section heading - so the entry is
+        # for this release, not a mention in the body - and that section, up to
+        # the next '##' heading, becomes the release body verbatim.
+        run: |
+          $version = $env:SUITE_VERSION
+          # -Encoding UTF8 spelled out: Windows PowerShell 5.1 would otherwise
+          # read the file as ANSI and turn every em dash into mojibake.
+          $lines = @(Get-Content -LiteralPath CHANGES.md -Encoding UTF8)
+          $pattern = '^##\s+\[' + [regex]::Escape($version) + '\]'
+
+          $start = -1
+          for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match $pattern) { $start = $i; break }
+          }
+          if ($start -lt 0) {
+            throw "CHANGES.md has no '## [$version]' section - write the release notes and commit them before tagging"
+          }
+
+          $finish = $lines.Count
+          for ($j = $start + 1; $j -lt $lines.Count; $j++) {
+            if ($lines[$j] -match '^##\s') { $finish = $j; break }
+          }
+          if ($finish -le $start + 1) {
+            throw "the '## [$version]' section in CHANGES.md is empty - write the release notes before tagging"
+          }
+
+          $body = (($lines[($start + 1)..($finish - 1)] | ForEach-Object { $_.TrimEnd() }) -join "`n").Trim()
+          if (-not $body) {
+            throw "the '## [$version]' section in CHANGES.md is empty - write the release notes before tagging"
+          }
+
+          # UTF-8 without BOM: gh sends the file as the release body as-is.
+          $utf8 = New-Object System.Text.UTF8Encoding($false)
+          [System.IO.File]::WriteAllText((Join-Path $PWD 'release-notes.md'), $body + "`n", $utf8)
+          "documented: $($lines[$start].Trim())"
+          "notes    : release-notes.md, $($body.Split("`n").Count) lines"
+
+      - name: Check the archive against its checksum
+        shell: pwsh
+        # Proves the file about to be published is the one the checksum
+        # describes, rather than trusting that both were written correctly.
+        run: |
+          $zip = "release\Zanphar-WinSuite-v$env:SUITE_VERSION.zip"
+          $sumFile = "$zip.sha256"
+          foreach ($p in @($zip, $sumFile)) {
+            if (-not (Test-Path -LiteralPath $p)) { throw "missing $p - the build job did not upload it" }
+          }
+          $expected = ((Get-Content -LiteralPath $sumFile -Raw).Trim() -split '\s+')[0]
+          $actual = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($expected -ne $actual) {
+            throw "checksum file says $expected but the archive hashes to $actual"
+          }
+          "archive : $zip"
+          "sha256  : $actual"
+
+      - name: Attach the archive to the GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Re-running a tag pipeline replaces the assets instead of failing on
+        # the release that the previous attempt already created.
+        run: |
+          $tag = $env:TAG
+          $version = $env:SUITE_VERSION
+          $files = @(
+            "release\Zanphar-WinSuite-v$version.zip",
+            "release\Zanphar-WinSuite-v$version.zip.sha256"
+          )
+          gh release view $tag --json tagName 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @files --clobber
+            # Keep the body in step with the tag as well as the assets.
+            gh release edit $tag --notes-file release-notes.md
+          }
+          else {
+            $flags = @()
+            # A suffixed version (v0.3.0-rc1) is not a stable release and must
+            # not become the "latest" download.
+            if ($version -match '-') { $flags += '--prerelease' }
+            gh release create $tag @files --verify-tag --notes-file release-notes.md `
+              --title "Zanphar's WinSuite v$version" @flags
+          }
+          if ($LASTEXITCODE -ne 0) { throw "gh release failed with exit code $LASTEXITCODE" }

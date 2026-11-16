@@ -1,0 +1,39 @@
+// Zanphar's WinSuite - resources for the task-rule agent.
+//
+// The agent has no window of its own, but Windows still shows its file in
+// Explorer's Details tab, Task Manager and the Startup list. This version block
+// gives it the same identity as the suite and the licence it ships under, so no
+// binary in bin\ is left without a copyright line.
+
+#include <windows.h>
+
+1 VERSIONINFO
+  FILEVERSION     1,0,0,0
+  PRODUCTVERSION  1,0,0,0
+  FILEFLAGSMASK   0x3fL
+  FILEFLAGS       0x0L
+  FILEOS          VOS_NT_WINDOWS32
+  FILETYPE        VFT_APP
+  FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    // 0409 = US English, 04B0 = Unicode
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName",      "Charles McDonald"
+      VALUE "FileDescription",  "Zanphar's WinSuite - task rule agent"
+      VALUE "FileVersion",      "1.0.0.0"
+      VALUE "InternalName",     "WinSuiteAgent"
+      VALUE "LegalCopyright",   "Copyright (C) 2026 Charles McDonald. BSD 3-Clause License."
+      VALUE "OriginalFilename", "WinSuiteAgent.exe"
+      VALUE "ProductName",      "Zanphar's WinSuite"
+      VALUE "ProductVersion",   "1.0.0.0"
+      VALUE "Comments",         "Applies saved task affinity and priority rules while the suite is closed."
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

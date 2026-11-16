@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Features — Zanphar's WinSuite</title>
+<meta name="description" content="Every page of Zanphar's WinSuite: dashboard, cleanup, browsers, memory, DNS, networking, Game Booster, large files, startup, Deactivate, services, Task Manager, system and settings.">
+<meta name="theme-color" content="#0d1015">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/site.css">
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+</head>
+<body data-page="features">
+<a class="skip" href="#main">Skip to content</a>
+<div class="shell">
+  <aside class="rail">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true">Z</span>
+      <span class="brand-name">Zanphar's<strong>WinSuite</strong></span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="nav" id="site-nav" aria-label="Sections">
+      <a href="index.html" data-nav="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>Home</a>
+      <a href="features.html" data-nav="features"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Features</a>
+      <a href="screenshots.html" data-nav="screenshots"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Screenshots</a>
+      <a href="download.html" data-nav="download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg>Download</a>
+      <a href="changelog.html" data-nav="changelog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>Changelog</a>
+      <a href="license.html" data-nav="license"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="m9 14 2 2 4-4"/></svg>Licence</a>
+      <a href="privacy.html" data-nav="privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>Privacy</a>
+    </nav>
+    <div class="rail-foot">
+      <strong>Version 0.2.4</strong>
+      <p>Native Win32 &middot; no telemetry</p>
+    </div>
+  </aside>
+
+  <main id="main">
+    <header class="reveal">
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Fourteen pages</p>
+      <h1>Every page, and what it <span class="accent">actually does</span>.</h1>
+      <p class="lead">The suite is one window with fourteen pages, and each one is a small, complete tool: it reads the machine, shows what it found, asks before it changes anything, and can put back what it changed.</p>
+      <div class="toc" aria-label="Jump to a page">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#cleanup">Cleanup</a>
+        <a href="#browsers">Browsers</a>
+        <a href="#memory">Memory</a>
+        <a href="#dns">DNS</a>
+        <a href="#networking">Internet &amp; networking</a>
+        <a href="#game-booster">Game Booster</a>
+        <a href="#services">Services</a>
+        <a href="#task-manager">Task Manager</a>
+        <a href="#large-files">Large files</a>
+        <a href="#startup">Startup &amp; Deactivate</a>
+        <a href="#system">System</a>
+        <a href="#settings">Settings</a>
+        <a href="#engines">The four engines</a>
+      </div>
+    </header>
+
+    <section class="feature reveal" id="dashboard">
+      <div class="feature-body">
+        <p class="kicker">Dashboard</p>
+        <h2>The state of the PC, before you touch it</h2>
+        <p class="sub">Live RAM, CPU and disk meters with a history bar each, the machine's specifications, every connected volume, and the two quick jobs people actually press first.</p>
+        <ul>
+          <li><strong>Every volume, not just fixed disks.</strong> Removable, external, optical, network and RAM disks with their bus, model and free space — the list scrolls when there are more than fit.</li>
+          <li><strong>Quick clean and Recycle Bin.</strong> A regular clean of the caches, and a one-press trip to the Recycle Bin, both with the same prompts as the deep pages.</li>
+          <li><strong>No hidden polling.</strong> The meters update while the page is visible; nothing keeps sampling behind it.</li>
+        </ul>
+      </div>
+      <figure class="shot feature-media">
+        <img src="assets/img/pages/dashboard.png" width="1002" height="733" alt="Dashboard with RAM, CPU and disk meters, this PC's specifications and a storage list." loading="lazy">
+      </figure>
+    </section>
+
+    <section class="feature flip reveal" id="cleanup">
+      <div class="feature-body">
+        <p class="kicker">Cleanup</p>
+        <h2>Measured as the page opens, and careful with your files</h2>
+        <p class="sub">Temporary files, Windows Update downloads, prefetch, crash dumps, error reports and browser caches — measured row by row the moment the page opens, so it never sits empty waiting for a button.</p>
+        <ul>
+          <li><strong>Per-row progress.</strong> Each row reports its own measurement, and Cancel stops a long scan part way; rows it never reached keep their previous figure, dimmed rather than discarded.</li>
+          <li><strong>Personal targets ask first.</strong> Downloads is listed but stays unticked, and cleaning it names the file count and says the files go to the Recycle Bin.</li>
+          <li><strong>Your ticks survive a restart.</strong> The selection, the sort order (biggest first or built-in) and the choice itself are saved in <code>settings.ini</code>; Reset to defaults clears them.</li>
+          <li><strong>Select all, Clear all, Scan, Cancel.</strong> Whole-list controls sit alongside per-row ticks, and Scan comes back the moment a clean finishes.</li>
+        </ul>
+      </div>
+      <figure class="shot feature-media">
+        <img src="assets/img/pages/cleanup.png" width="1002" height="733" alt="Cleanup page with measured rows for temporary files, Windows Update downloads, prefetch and crash dumps." loading="lazy">
+      </figure>
+    </section>
+
+    <section class="feature reveal" id="browsers">
+      <div class="feature-body">
+        <p class="kicker">Browsers</p>
+        <h2>History, cookies, autofill, caches and sessions per browser</h2>
+        <p class="sub">Each installed browser is measured before anything is deleted — Chrome and Edge, plus the Chromium and Firefox families — and a browser that is running is skipped until its windows close.</p>
+        <ul>
+          <li><strong>Measured, not guessed.</strong> The size and file count come from the profiles on disk, not from a claim in the interface.</li>
+          <li><strong>Close first, then clean.</strong> The page can close the listed browsers for you and carry on, so a locked database never leaves half a history behind.</li>
+          <li><strong>It tells you what will be lost.</strong> Sites will sign you out; autofill entries are gone. The confirmation says so before it starts.</li>
+        </ul>
+      </div>
+      <figure class="shot feature-media">
+        <img src="assets/img/pages/browsers.png" width="1002" height="733" alt="Browsers page listing Google Chrome and Microsoft Edge with measured trace sizes." loading="lazy">
+      </figure>
+    </section>
+
+    <section class="feature flip reveal" id="memory">
+      <div class="feature-body">
+        <p class="kicker">Memory</p>
+        <h2>Free memory, without the placebo</h2>
+        <p class="sub">Installed, available, committed and cached memory with a live gauge and the eight largest processes. Regular clean trims the working sets Windows can spare; deep clean asks the kernel to flush its lists.</p>
+        <ul>
+          <li><strong>Smart RAM's automatic clean lives here.</strong> Threshold chips at 65, 75, 85 and 95 percent, an idle clean, and clear clipboard on clean — saved and applied without a second tray program.</li>
+          <li><strong>Prompts you control.</strong> Regular and deep clean each ask before they run; both prompts can be switched off in Settings if you would rather they just go.</li>
+          <li><strong>Honest numbers.</strong> Available memory is read fresh every tick and the page says how much was actually released.</li>
+        </ul>
+      </div>
+      <figure class="shot feature-media">
+        <img src="assets/img/pages/memory.png" width="1002" height="733" alt="Memory page with a usage gauge, regular and deep clean buttons, Smart RAM options and top memory users." loading="lazy">
+      </figure>
+    </section>
+
+    <section class="feature reveal" id="dns">
+      <div class="feature-body">
+        <p class="kicker">DNS</p>
+        <h2>One resolver, every adapter, and a watchdog</h2>
+        <p class="sub">Every adapter Windows reports with its current resolver: Bluetooth, Ethernet, Wi-Fi, Hyper-V, kernel debugger, VMware. Pick Google, Cloudflare, OpenDNS, Quad9 or automatic, apply it to all of them, or put the system DNS back.</p>
+        <ul>
+          <li><strong>Watchdog.</strong> While it is on, anything that changes the servers is re-written within 1.5 seconds, and the card counts what it has reverted this session.</li>
+          <li><strong>All adapters reachable.</strong> The list scrolls a whole card per wheel notch and ends on a card edge, with a bar and a count whenever there is more to see.</li>
+          <li><strong>Journaled changes.</strong> The previous servers and their type are saved, so Use system DNS restores exactly what was configured before.</li>
+        </ul>
+      </div>
+      <figure class="shot feature-media">
+        <img src="assets/img/pages/dns.png" width="1002" height="733" alt="DNS page with provider chips, a watchdog card and a list of adapters showing their resolvers." loading="lazy">
+      </figure>
+    </section>
+
+    <section class="feature flip reveal" id="networking">
+      <div class="feature-body">
+        <p class="kicker">Internet &amp; networking</p>
+        <h2>Gaming latency you can put a number on</h2>
+        <p class="sub">Four tried-and-true tweaks — Nagle's algorithm off on every configured adapter, network throttling and system responsiveness off, the Games multimedia task profile, no QoS reservation — with a profile button and a per-row switch.</p>
+        <ul>
+          <li><strong>Latency check.</strong> Type any host or IPv4 address, press measure, and get four echoes on a worker thread: average, min–max, packet loss, and the difference between the two readings.</li>
+          <li><strong>Before and after with one press.</strong> Applying the profile with no reading yet measures the baseline first; applying it with one in hand measures the host again as soon as the values land. Either way the card settles on the comparison by itself, so the effect is a number without a second press.</li>
+          <li><strong>Revert all, or one row.</strong> Values are journaled with their type before the write. A value another tool set used to be read-only here; it now offers <strong>Turn off</strong>, which saves what is there before removing it, so the row returns to the Windows default and Revert restores exactly what the other tool had chosen.</li>
+        </ul>
+      </div>
+      <figure class="shot feature-media">
+        <img src="assets/img/pages/networking.png" width="1008" height="729" alt="Internet and networking page with the gaming profile summary, latency check card and four tweak rows." loading="lazy">
+      </figure>
+    </section>
+
+    <section class="feature reveal" id="game-booster">
+      <div class="feature-body">
+        <p class="kicker">Game Booster</p>
+        <h2>One profile, and every row controllable here</h2>
+        <p class="sub">System Turbo's profile is the first row — high performance power plan, parked background services, Game DVR off — followed by Game Mode, mouse acceleration off, fullscreen optimisations off, and window animations and transparency off.</p>
+        <ul>
+          <li><strong>Apply profile or Revert all.</strong> The same journal as the rows, so the whole set can go on or come off together.</li>
+          <li><strong>Set elsewhere is gone.</strong> A value another tool already set can be turned off from here, with its original data saved so Revert restores exactly that.</li>
+          <li><strong>Where a restart is needed, it says so.</strong> Power plan and registry changes report what they changed and what Windows needs to re-read.</li>
+          <li><strong>Twenty-eight background services, each its own switch.</strong> Telemetry, Xbox Live, Print Spooler, Remote Desktop, Windows Event Log and the rest of the list a gaming session does not need, with the real service names and their live start type on the row. Turn off stops them and sets them to Manual - not Disabled, so Windows can still start one when something asks for it - after saving the start type, running state and delayed-autostart flag, so Revert puts each one back exactly. Rows Windows leans on print their state in the warning colour, a row Windows already had off says <strong>Already off</strong>, and none of them is part of the profile.</li>
+        </ul>
+      </div>
+      <figure class="shot feature-media">
+        <img src="assets/img/pages/game-booster.png" width="1002" height="733" alt="Game Booster page with the profile row, the gaming tweak rows and the background-services switches." loading="lazy">
+      </figure>
+    </section>
+
+    <section class="feature flip reveal" id="services">
+      <div class="feature-body">
+        <p class="kicker">Services</p>
+        <h2>The whole service database, with a safety rail</h2>
+        <p class="sub">All installed services with display name, service name, binary, start type and state. Search narrows the list as you type, and the four start types are one press each.</p>
+        <ul>
+          <li><strong>Bulk ticks.</strong> Tick rows, press Start or Stop once, and the action runs over every ticked service that needs it, with one prompt and one summary.</li>
+          <li><strong>New, Edit and Delete for your own entries.</strong> Only for binaries that are not Windows components; the Windows and security entries are protected from removal.</li>
+          <li><strong>Nothing acts on what you cannot see.</strong> A filter that hides a ticked row drops that tick, so a bulk action never touches a hidden service.</li>
+        </ul>
+      </div>
+      <figure class="shot feature-media">
+        <img src="assets/img/pages/services.png" width="1002" height="733" alt="Services page listing installed services with start types and state, with start type chips and bulk controls." loading="lazy">
+      </figure>
+    </section>
+
+    <section class="feature reveal" id="task-manager">
+      <div class="feature-body">
+        <p class="kicker">Task Manager</p>
+        <h2>Affinity and priority that survive the next boot</h2>
+        <p class="sub">Every process with its pid, account, affinity, priority and memory. End task asks windows to close; Force end terminates after a confirmation; New task starts a program with the cores and priority you choose.</p>
+        <ul>
+          <li><strong>Rules, not one-off clicks.</strong> Tick Remember and the affinity mask and priority are saved per program name, then re-applied whenever that program starts.</li>
+          <li><strong>One small agent, only if you ask.</strong> The saved rules are enforced by <code>WinSuiteAgent.exe</code>, registered to run at sign-in the first time a rule is saved — and removed again with the rules.</li>
+          <li><strong>Multi-select.</strong> Ticks drive End task and Force end over the whole set, and the search box narrows 250+ processes to the one you meant.</li>
+        </ul>
+      </div>
+      <figure class="shot feature-media">
+        <img src="assets/img/pages/task-manager.png" width="1002" height="733" alt="Task Manager page listing processes with pid, affinity, priority and memory, plus bulk controls and a search box." loading="lazy">
+      </figure>
+    </section>
+
+    <section class="feature flip reveal" id="large-files">
+      <div class="feature-body">
+        <p class="kicker">Large files</p>
+        <h2>Find what is eating the disk</h2>
+        <p class="sub">Scan a folder — or all of them — for files above a threshold you set, biggest first, with the folder each one lives in. Removing one sends it to the Recycle Bin, so a mistake is recoverable.</p>
+        <ul>
+          <li><strong>Thresholds, not guesses.</strong> Choose the size that matters and the scan lists only what is at least that big.</li>
+          <li><strong>Guarded deletion.</strong> Only the files it found can be removed, and they are recycled rather than unlinked.</li>
+        </ul>
+      </div>
+      <figure class="shot feature-media">
+        <img src="assets/img/pages/large-files.png" width="1002" height="733" alt="Large files page with a size threshold and a scan button, waiting for its first scan." loading="lazy">
+      </figure>
+    </section>
+
+    <section class="feature reveal" id="startup">
+      <div class="feature-body">
+        <p class="kicker">Startup &amp; Deactivate</p>
+        <h2>Take things out of the boot, and put them back</h2>
+        <p class="sub">Startup lists every Run entry and Startup-folder shortcut with where it came from and whether it is on. Deactivate parks third-party services that start with Windows, keeping their start type and any registry values so they can be restored exactly.</p>
+        <ul>
+          <li><strong>Disable without deleting.</strong> Startup entries are switched off by moving the value aside, not by removing it, so turning one back on preserves its type and data.</li>
+          <li><strong>Restore all.</strong> Deactivate keeps a journal; Restore all puts every parked service and value back in one step.</li>
+          <li><strong>System entries are left alone.</strong> Windows components, drivers and security software are never offered for deactivation.</li>
+        </ul>
+      </div>
+      <div class="feature-media">
+        <div class="card">
+          <h3>What the suite will not do</h3>
+          <p>It will not disable a Windows component, a driver, or security software; it will not delete a startup entry it did not create; and it will not claim a value it cannot put back.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="feature flip reveal" id="system">
+      <div class="feature-body">
+        <p class="kicker">System</p>
+        <h2>The machine's own report card</h2>
+        <p class="sub">Processor, installed memory, GPU and its driver, the Windows build, the boot time and every volume with its bus, model, file system and usage bar.</p>
+        <ul>
+          <li><strong>All storage, scrollable.</strong> Every connected volume — installed, external, swappable, optical, network — with a bar that shows where you are.</li>
+          <li><strong>Copy report.</strong> The whole readout on the clipboard for a support thread, without a screenshot.</li>
+        </ul>
+      </div>
+      <figure class="shot feature-media">
+        <img src="assets/img/pages/system.png" width="1002" height="733" alt="System page with this machine's processor, memory, GPU, Windows build and a storage device list." loading="lazy">
+      </figure>
+    </section>
+
+    <section class="feature reveal" id="settings">
+      <div class="feature-body">
+        <p class="kicker">Settings</p>
+        <h2>Six switches, and the agreement</h2>
+        <p class="sub">Close to system tray and Minimize to system tray, both off until you choose them and remembered in <code>settings.ini</code>. <strong>Show on system tray at startup</strong> opens the suite straight into the tray with no window on the desktop. <strong>Toast notifications</strong>, on by default, gates the balloon a menu-started memory clean reports itself with. Ask before Regular clean and Ask before Deep clean are also on by default, so no clean runs unannounced.</p>
+        <ul>
+          <li><strong>A tray menu that does some work.</strong> Open, Regular Memory Clean, Deep Memory Clean and Exit: both cleans run exactly what the Memory page runs, prompts and the deep clean's administrator restart included, so the window never has to be opened for one.</li>
+          <li><strong>Read the licence.</strong> The full BSD 3-Clause agreement opens read-only in the window, with the copyright line on the page itself.</li>
+          <li><strong>Nothing else.</strong> No account, no sync, no telemetry switch to hunt for.</li>
+        </ul>
+      </div>
+      <figure class="shot feature-media">
+        <img src="assets/img/pages/settings.png" width="1002" height="733" alt="Settings page with the tray options, the toast notification switch, the clean dialog options and the copyright and licence section." loading="lazy">
+      </figure>
+    </section>
+
+    <section class="section reveal" id="engines">
+      <div class="section-head">
+        <div>
+          <h2>The four engines</h2>
+          <p>The suite grew out of four standalone programs. Their engines now run inside the window, and the executables still build and run on their own.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption>Each program keeps its own version block, elevation level and data folder.</caption>
+          <thead>
+            <tr><th scope="col">Program</th><th scope="col">What it does</th><th scope="col">Elevation</th><th scope="col">Data</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Browser Cleaner</strong><br><code>BrowserCleaner.exe</code></td><td>Measures and deletes browser history, cookies, autofill, caches and session data.</td><td>asInvoker</td><td>None — edits the browser profiles themselves</td></tr>
+            <tr><td><strong>DNS Protect</strong><br><code>DNSProtect.exe</code></td><td>Applies one resolver to every adapter and reverts interference within 1.5 seconds.</td><td>requireAdministrator</td><td><code>%ProgramData%\DNSProtect\</code></td></tr>
+            <tr><td><strong>Smart RAM</strong><br><code>SmartRAM.exe</code></td><td>Trims working sets on a threshold and on idle, with clipboard clearing.</td><td>asInvoker</td><td><code>%LOCALAPPDATA%\SmartRAM\config.ini</code></td></tr>
+            <tr><td><strong>System Turbo</strong><br><code>SystemTurbo.exe</code></td><td>High-performance plan, parked background services and Game DVR off.</td><td>requireAdministrator</td><td><code>%ProgramData%\SystemTurbo\</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="cta reveal">
+      <div>
+        <h2>See it on your own machine</h2>
+        <p>Version 0.2.4 &middot; Windows 10/11 x64 &middot; no installer &middot; BSD 3-Clause.</p>
+      </div>
+      <div class="actions">
+        <a class="btn" href="download.html">Download</a>
+        <a class="btn ghost" href="screenshots.html">Screenshots</a>
+      </div>
+    </section>
+
+    <footer class="site">
+      <span>Copyright © 2026 Charles McDonald. Licensed under the BSD 3-Clause License.</span>
+      <nav aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="download.html">Download</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="license.html">Licence</a>
+        <a href="privacy.html">Privacy</a>
+      </nav>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/site.js"></script>
+</body>
+</html>
