@@ -26,7 +26,7 @@
 #endif
 
 static const wchar_t* kAppName = L"Zanphar's WinSuite";
-static const wchar_t* kVersion = L"2.0.0";
+static const wchar_t* kVersion = L"2.1.0";
 
 #define WM_APP_SCAN_DONE (WM_APP + 1)
 #define WM_APP_CLEAN_DONE (WM_APP + 2)

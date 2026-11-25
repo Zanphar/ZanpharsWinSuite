@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Changelog — Zanphar's WinSuite</title>
-<meta name="description" content="What changed in each Zanphar's WinSuite release: 2.0.0, 0.2.5, 0.2.4, 0.2.3, 0.2.2, 0.2.1, 0.2.0 and 0.1.0.">
+<meta name="description" content="What changed in each Zanphar's WinSuite release: 2.1.0, 2.0.0, 0.2.5, 0.2.4, 0.2.3, 0.2.2, 0.2.1, 0.2.0 and 0.1.0.">
 <meta name="theme-color" content="#0d1015">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/site.css">
@@ -29,7 +29,7 @@
       <a href="privacy.html" data-nav="privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>Privacy</a>
     </nav>
     <div class="rail-foot">
-      <strong>Version 2.0.0</strong>
+      <strong>Version 2.1.0</strong>
     </div>
   </aside>
 
@@ -41,10 +41,31 @@
       <p class="sub" style="margin-top:14px">This page summarises the releases. The complete, line-by-line log is in <a href="docs/CHANGES.txt">CHANGES.md</a>.</p>
     </header>
 
+    <section class="section reveal" aria-labelledby="v210">
+      <div class="release-head">
+        <span class="ver">2.1.0</span>
+        <span class="pill">Current</span>
+        <span class="pill muted">25 November 2026</span>
+      </div>
+      <div class="prose">
+        <p>Browser Cleaner learns Internet Explorer, and System Turbo's dashboard can be resized and maximized.</p>
+
+        <h3>Browser Cleaner</h3>
+        <ul>
+          <li><strong>Internet Explorer joins the browser list.</strong> The catalog and the suite's Browsers page offer IE beside Chrome, Edge, Brave, Vivaldi, Opera, Opera GX and Firefox, with its own selectable traces: History, Cookies, Cache and Session recovery. It is detected and closed like the others.</li>
+          <li><strong>History leaves WinINet's shared cache alone.</strong> IE History clears the dedicated WinINet History folder; the shared WebCache database is deliberately kept because it also holds cookies and other WinINet state. Passwords and Autofill are not claimed for IE, because it does not store them in the files this cleaner removes.</li>
+        </ul>
+
+        <h3>System Turbo</h3>
+        <ul>
+          <li><strong>A dashboard that resizes and maximizes.</strong> The window uses a thick frame with a DPI-scaled floor of 660 x 752 client pixels, so it cannot be dragged smaller than its layout. Cards stretch with the client width, the action buttons share the full row, the memory card fills the remaining height, and painting is double-buffered at the live client size so a resize never exposes stale pixels or breaks the click targets.</li>
+        </ul>
+      </div>
+    </section>
+
     <section class="section reveal" aria-labelledby="v200">
       <div class="release-head">
         <span class="ver">2.0.0</span>
-        <span class="pill">Current</span>
         <span class="pill muted">25 November 2026</span>
       </div>
       <div class="prose">
@@ -246,7 +267,7 @@
 
     <section class="cta reveal">
       <div>
-        <h2>Get 2.0.0</h2>
+        <h2>Get 2.1.0</h2>
         <p>The archive this changelog describes, with its checksum published beside it.</p>
       </div>
       <div class="actions">

@@ -6,7 +6,7 @@ The suite is versioned as a bundle (SemVer); each program keeps its own
 version in its `.rc` version block. Dates are the dates the change landed in
 this folder.
 
-## [Unreleased]
+## [2.1.0] - 2026-11-25
 
 ### Added
 

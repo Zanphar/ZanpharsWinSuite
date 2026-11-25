@@ -445,7 +445,7 @@ static void PaintSidebar(HDC dc, int w, int h, AppState& st, std::vector<Hit>& h
 
     int footerY = footerTop;
     HLine(dc, S(20), sw - S(20), footerY, theme::cardEdge);
-    TextAt(dc, L"Version 2.0.0", S(22), footerY + S(16), g_fonts.small, theme::muted);
+    TextAt(dc, L"Version 2.1.0", S(22), footerY + S(16), g_fonts.small, theme::muted);
     TextAt(dc, L"Native Win32 - no telemetry", S(22), footerY + S(38), g_fonts.tiny, theme::faint);
     const wchar_t* modeLabel = st.elevated          ? L"Administrator"
                                : st.promptSuppressed ? L"Standard user - no prompt"
