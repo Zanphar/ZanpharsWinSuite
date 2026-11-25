@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# Checksum files stay byte-for-byte LF: coreutils' sha256sum -c reads a
+# trailing CR as part of the file name and fails the check.
+*.sha256 -text
