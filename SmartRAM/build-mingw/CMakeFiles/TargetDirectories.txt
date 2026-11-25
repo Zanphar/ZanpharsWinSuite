@@ -1,3 +1,0 @@
-C:/Users/Bored/Desktop/Zanphar's WinSuite/SmartRAM/build-mingw/CMakeFiles/SmartRAM.dir
-C:/Users/Bored/Desktop/Zanphar's WinSuite/SmartRAM/build-mingw/CMakeFiles/edit_cache.dir
-C:/Users/Bored/Desktop/Zanphar's WinSuite/SmartRAM/build-mingw/CMakeFiles/rebuild_cache.dir

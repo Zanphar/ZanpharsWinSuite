@@ -11,3 +11,10 @@ SmartRAM/build/
 SmartRAM/build-mingw/
 SmartRAM/dist/
 BrowserCleaner/BrowserCleaner.exe
+
+# Staged executables and local release artifacts. These are produced by the
+# build scripts and must not dirty the tree.
+/bin/*.exe
+/release/
+/website.zip
+/InternetConnectionUtility/*.exe
