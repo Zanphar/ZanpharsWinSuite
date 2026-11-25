@@ -540,10 +540,11 @@ builds the suite. The standalone executables still exist on their own.
 Removes tracking data from Internet Explorer (history, cookies, cache and
 session recovery), Chromium-based browsers (Chrome, Edge, Brave, Vivaldi,
 Opera, Opera GX) and Firefox (history, cookies, autofill forms, cached files
-and session restore). IE is read from WinINet's shared Windows folders (History
-and WebCache, INetCache, INetCookies) plus its recovery folder; it has no
-Chromium-style profile, so those traces are resolved from
-LocalAppData/RoamingAppData directly. It detects running browsers and offers to
+and session restore). IE is read from WinINet's shared Windows folders (the
+dedicated History folder, INetCache and INetCookies) plus its recovery folder;
+WebCache is deliberately not deleted because it also holds cookies and other
+WinINet state. IE has no Chromium-style profile, so those traces are resolved
+from LocalAppData/RoamingAppData directly. It detects running browsers and offers to
 close them first, then reports what was measured and deleted, per browser and
 per trace item.
 

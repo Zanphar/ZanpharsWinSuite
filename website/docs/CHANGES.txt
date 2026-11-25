@@ -13,9 +13,10 @@ this folder.
 - **Browser Cleaner recognises Internet Explorer.** The catalog and the suite's
   Browsers page now include IE alongside Chrome, Edge, Brave, Vivaldi, Opera,
   Opera GX and Firefox, with its own selectable traces: **History** (the
-  WinINet History folder and the WebCache database), **Cookies** (INetCookies
-  and the roaming Cookies folder), **Cache** (INetCache), and **Session** (the
-  IE recovery folder). It is detected and closed like the other browsers;
+  dedicated WinINet History folder; the shared WebCache database is deliberately
+  left alone because it also holds cookies and other WinINet state), **Cookies**
+  (INetCookies and the roaming Cookies folder), **Cache** (INetCache), and
+  **Session** (the IE recovery folder). It is detected and closed like the other browsers;
   Passwords and Autofill are not claimed for IE because it does not store them
   in files this cleaner removes.
 

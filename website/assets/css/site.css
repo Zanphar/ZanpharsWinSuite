@@ -305,7 +305,14 @@ h4 { font-size: 14px; margin: 0 0 4px; }
   overflow: hidden;
 }
 .shot img { border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.35); }
-.shot.hero { margin-top: 36px; }
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 36px;
+  align-items: center;
+}
+.hero-grid .shot.hero { margin-top: 0; }
+.hero-grid .shot figcaption { flex-wrap: wrap; }
 
 .shot figcaption {
   display: flex;
@@ -684,6 +691,8 @@ footer.site a { color: var(--muted); }
   main { padding: 28px 20px 48px; }
   h1 { font-size: clamp(30px, 8vw, 40px); }
   .lead { font-size: 15.5px; }
+  .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .hero-grid .shot.hero { margin-top: 4px; }
   .feature { grid-template-columns: minmax(0, 1fr); padding: 28px 0; }
   .gallery { grid-template-columns: minmax(0, 1fr); }
   .gallery figure .shot { padding: 6px; }
