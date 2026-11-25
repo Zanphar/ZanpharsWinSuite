@@ -171,7 +171,7 @@ jobs:
           if ($text -notmatch '(?m)^BSD 3-Clause License\s*$') {
             throw 'the packaged LICENSE.md does not name the BSD 3-Clause License'
           }
-          if ($text -notmatch 'Copyright \(c\) 2026, Charles McDonald') {
+          if ($text -notmatch 'Copyright \(c\) 2026(?:-2027)?, Charles McDonald') {
             throw 'the packaged LICENSE.md does not carry the Copyright (c) 2026, Charles McDonald line'
           }
           foreach ($clause in @(
