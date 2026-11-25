@@ -3,9 +3,10 @@
 //  A from-scratch, dependency-free C++ / Win32 utility inspired by
 //  IObit's "Browser Anti-Tracking" (BrowserCleaner.exe).
 //
-//  Removes browser tracking data — history, cookies, autofill forms, cached
-//  files and session restore data — for Chromium-based browsers
-//  (Chrome, Edge, Brave, Vivaldi, Opera, Opera GX) and Mozilla Firefox.
+//  Removes browser tracking data from Internet Explorer (history, cookies,
+//  cache and session recovery), Chromium-based browsers (Chrome, Edge, Brave,
+//  Vivaldi, Opera, Opera GX) and Mozilla Firefox (history, cookies, autofill,
+//  cached files and session restore).
 //
 //  Architecture
 //    Storage engine : inspect/delete trace files (std::filesystem)
@@ -83,10 +84,12 @@ const Color White      (255, 255, 255, 255);
 // ============================================================================
 
 enum class TraceKind { File, Folder };
+enum class TraceRoot { Profile, LocalAppData, RoamingAppData };
 
 struct TracePath {
     TraceKind      kind;
-    const wchar_t* rel;   // relative to the profile directory
+    const wchar_t* rel;   // relative to the root below
+    TraceRoot      root = TraceRoot::Profile;  // profile, unless IE needs an AppData root
 };
 
 struct TraceItem {
@@ -139,6 +142,23 @@ static const TraceItem kFirefoxItems[] = {
         { TraceKind::File, L"sessionstore.js" } } },
 };
 
+// IE keeps its data outside a Chromium-style profile: WinINet owns the history,
+// cache and cookies, and the recovery folder holds the last session. WebCache is
+// the database modern Windows uses for IE's history, so it belongs with History.
+static const TraceItem kInternetExplorerItems[] = {
+    { L"History",
+      { { TraceKind::Folder, L"Microsoft\\Windows\\History", TraceRoot::LocalAppData },
+        { TraceKind::Folder, L"Microsoft\\Windows\\WebCache", TraceRoot::LocalAppData } } },
+    { L"Cookies",
+      { { TraceKind::Folder, L"Microsoft\\Windows\\INetCookies", TraceRoot::LocalAppData },
+        { TraceKind::Folder, L"Microsoft\\Windows\\Cookies", TraceRoot::RoamingAppData } } },
+    { L"Cache",
+      { { TraceKind::Folder, L"Microsoft\\Windows\\INetCache", TraceRoot::LocalAppData } } },
+    { L"Session",
+      { { TraceKind::Folder, L"Microsoft\\Windows\\Internet Explorer\\Recovery",
+          TraceRoot::LocalAppData } } },
+};
+
 // ============================================================================
 //  Catalog — supported browsers
 // ============================================================================
@@ -147,6 +167,7 @@ enum class ProfileMode {
     ChromiumShards,  // one subfolder per profile (Default, Profile 1, ...)
     OperaRoot,       // profile data lives directly in the base folder
     FirefoxShards,   // every subfolder of Profiles\ is a profile
+    Fixed,           // one base folder, with traces resolved from their own roots
 };
 
 struct BrowserAccent { unsigned char r, g, b; };
@@ -164,7 +185,7 @@ struct BrowserDef {
 
 static std::vector<BrowserDef> BuildCatalog() {
     std::vector<BrowserDef> list;
-    list.reserve(7);
+    list.reserve(8);
 
     auto add = [&list](BrowserDef def, const TraceItem* items, size_t count) {
         def.items.assign(items, items + count);
@@ -177,6 +198,9 @@ static std::vector<BrowserDef> BuildCatalog() {
     add({ L"Microsoft Edge",  L"msedge.exe",   ProfileMode::ChromiumShards, false,
           L"Microsoft\\Edge\\User Data",              {0x00,0x78,0xD4}, L"Ed", {} },
          kChromiumItems, CountOf(kChromiumItems));
+    add({ L"Internet Explorer", L"iexplore.exe", ProfileMode::Fixed, false,
+          L"Microsoft\\Windows",                       {0x00,0x74,0xE8}, L"IE", {} },
+         kInternetExplorerItems, CountOf(kInternetExplorerItems));
     add({ L"Brave Browser",   L"brave.exe",    ProfileMode::ChromiumShards, false,
           L"BraveSoftware\\Brave-Browser\\User Data", {0xFB,0x54,0x2B}, L"Br", {} },
          kChromiumItems, CountOf(kChromiumItems));
@@ -262,6 +286,7 @@ static std::vector<fs::path> ProfileDirs(const BrowserDef& def) {
         break;
 
     case ProfileMode::OperaRoot:
+    case ProfileMode::Fixed:
         out.push_back(base);
         break;
     }
@@ -314,9 +339,18 @@ static TraceResult MeasureFile(const fs::path& p) {
     return r;
 }
 
+static fs::path TraceBase(const TracePath& tp, const fs::path& profile) {
+    switch (tp.root) {
+    case TraceRoot::LocalAppData:   return AppDataBase(false);
+    case TraceRoot::RoamingAppData: return AppDataBase(true);
+    case TraceRoot::Profile:        break;
+    }
+    return profile;
+}
+
 static TraceResult Measure(const TracePath& tp, const fs::path& profile) {
     TraceResult r;
-    const fs::path target = profile / tp.rel;
+    const fs::path target = AppendRel(TraceBase(tp, profile), tp.rel);
     if (!Exists(target)) return r;
 
     if (tp.kind == TraceKind::File) {
@@ -342,7 +376,7 @@ static TraceResult Measure(const TracePath& tp, const fs::path& profile) {
 
 static TraceResult Clean(const TracePath& tp, const fs::path& profile) {
     TraceResult r;
-    const fs::path target = profile / tp.rel;
+    const fs::path target = AppendRel(TraceBase(tp, profile), tp.rel);
     if (!Exists(target)) return r;
 
     auto removeCounted = [&](const fs::path& f) {
@@ -823,6 +857,21 @@ static void SizeToContent(HWND hwnd) {
                  SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
+// Every window opens in the middle of the work area rather than wherever Windows
+// would have put it, so the program is where the eye already is.
+static void CenterOnWorkArea(HWND hwnd) {
+    RECT size = {};
+    if (!GetWindowRect(hwnd, &size)) return;
+    MONITORINFO mi{ sizeof(mi) };
+    if (!GetMonitorInfoW(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), &mi) &&
+        !SystemParametersInfoW(SPI_GETWORKAREA, 0, &mi.rcWork, 0))
+        SetRect(&mi.rcWork, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+    SetWindowPos(hwnd, nullptr,
+                 mi.rcWork.left + ((mi.rcWork.right - mi.rcWork.left) - (size.right - size.left)) / 2,
+                 mi.rcWork.top + ((mi.rcWork.bottom - mi.rcWork.top) - (size.bottom - size.top)) / 2,
+                 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+}
+
 // ---- hit testing ---------------------------------------------------------------
 
 static int HoverAt(HWND hwnd) {
@@ -1094,6 +1143,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         ui.dpi = GetDpiForWindow(hwnd);
         CreateFonts();
         SizeToContent(hwnd);
+        CenterOnWorkArea(hwnd);
         return 0;
 
     case WM_ERASEBKGND:
@@ -1178,10 +1228,12 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nCmdShow) {
         BrowserState& s = g.state[b];
         s.checked.assign(g.catalog[b].items.size(), 0);
         s.installed = !ProfileDirs(g.catalog[b]).empty();
-        for (size_t i = 0; i < s.checked.size(); ++i)
-            // indexes: 0 History, 1 Cookies, 2 Autofill, 3 Passwords,
-            //          4 Cache, 5 Session
-            s.checked[i] = (i == 3 || i == 5) ? 0 : 1;
+        for (size_t i = 0; i < s.checked.size(); ++i) {
+            const std::wstring label = g.catalog[b].items[i].label;
+            // Passwords and session restore are opt-in; IE has no autofill row,
+            // so its four items must not be selected by a hard-coded index.
+            s.checked[i] = (label == L"Passwords" || label == L"Session") ? 0 : 1;
+        }
     }
 
     if (!SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))

@@ -65,13 +65,15 @@ void LayerWindow::PlaceAt(int x, int y) {
         SetWindowPos(hwnd_, nullptr, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
+// The card starts in the middle of the work area; dragging it somewhere else is
+// remembered, so this is only where a machine that has never seen it puts it.
 void LayerWindow::PlaceDefault() {
     RECT work = {};
     SystemParametersInfoW(SPI_GETWORKAREA, 0, &work, 0);
     const int winW = (int)((cardW_ + 2 * padding_) * scale_);
     const int winH = (int)((cardH_ + 2 * padding_) * scale_);
-    const int x = work.right - winW - (int)(20 * scale_);
-    const int y = work.bottom - winH - (int)(60 * scale_);
+    const int x = work.left + ((work.right - work.left) - winW) / 2;
+    const int y = work.top + ((work.bottom - work.top) - winH) / 2;
     PlaceAt(x, y);
 }
 

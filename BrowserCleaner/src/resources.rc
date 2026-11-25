@@ -1,3 +1,4 @@
+#pragma code_page(65001)  // the © in LegalCopyright is UTF-8
 // resources.rc - Win32 resources for BrowserCleaner
 #include <windows.h>
 
@@ -22,7 +23,7 @@ BEGIN
             VALUE "FileDescription",  "Browser Cleaner - Anti-Tracking"
             VALUE "FileVersion",      "1.0.0.0"
             VALUE "InternalName",     "BrowserCleaner"
-            VALUE "LegalCopyright",   "Copyright (C) 2026 Charles McDonald. BSD 3-Clause License. Not affiliated with IObit Ltd."
+            VALUE "LegalCopyright",   "Copyright © 2026-2027 Charles McDonald. BSD 3-Clause License. Not affiliated with IObit Ltd."
             VALUE "OriginalFilename", "BrowserCleaner.exe"
             VALUE "ProductName",      "Browser Cleaner"
             VALUE "ProductVersion",   "1.0.0.0"

@@ -1,3 +1,4 @@
+#pragma code_page(65001)  // the © in LegalCopyright is UTF-8
 // ============================================================================
 //  resources.rc — manifest, version information and the application icon.
 //
@@ -28,7 +29,7 @@ BEGIN
       VALUE "FileDescription",  "Applies reversible performance tweaks and reports memory/CPU usage"
       VALUE "FileVersion",      "1.0.0.0"
       VALUE "InternalName",     "systemturbo"
-      VALUE "LegalCopyright",   "Copyright (C) 2026 Charles McDonald. BSD 3-Clause License."
+      VALUE "LegalCopyright",   "Copyright © 2026-2027 Charles McDonald. BSD 3-Clause License."
       VALUE "OriginalFilename", "SystemTurbo.exe"
       VALUE "ProductName",      "System Turbo"
       VALUE "ProductVersion",   "1.0.0"

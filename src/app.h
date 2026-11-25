@@ -21,6 +21,7 @@ enum class Page {
     Startup,
     Deactivate,
     System,
+    Storage,
     Services,
     Tasks,
     Settings
@@ -115,6 +116,9 @@ enum HitId {
     HitNetDefaults = 93,  // the Networking page's one-press Windows-defaults restore
     HitSettingsTrayStartup = 94,  // open hidden in the notification area
     HitSettingsToasts = 95,       // notification-area balloons on or off
+    NavStorage = 96,
+    HitStorageRefresh = 97,
+    HitStorageCancel = 98,
     // Ranges that sit above every older one: matched before the DNS/row ranges below.
     HitSvcTypeBase = 8100,   // 4 start-type chips
     HitTaskPriorityBase = 8200,  // 6 priority chips
@@ -124,6 +128,7 @@ enum HitId {
     HitNetRowBase = 11000,   // one network tweak, ids above every other range
     HitGameTweakBase = 12000,  // one Game Booster tweak, above every other range
     HitGameServiceBase = 13000,  // one Game Booster background-service row, above all of them
+    HitStorageRowBase = 14000,   // one local volume's Optimize button
     // Kept well clear of the fixed ids above: the chip ranges are matched with a
     // "base .. base + n" test, so any id inside one would be swallowed.
     HitLargeChipBase = 100,
@@ -310,6 +315,21 @@ struct AppState {
     int scrollCleanup = 0;
     int scrollDashboard = 0;  // the Storage card's list on the Dashboard
     int scrollSystem = 0;
+    // Storage page: volumes, which mode defrag.exe will use, and the last result.
+    bool storageBusy = false;
+    std::wstring storageAction;      // "Defragmenting D:\" while the worker runs
+    std::wstring storageMessage;
+    bool storageMessageIsError = false;
+    ULONGLONG storageStarted = 0;    // GetTickCount64() at the start of the operation
+    int storagePercent = -1;         // last percentage defrag.exe reported, or -1
+    int scrollStorage = 0;
+    // Scrollbar geometry from the last Storage paint, for grabbing and dragging its thumb.
+    int storageScrollMax = 0;
+    int storagePageStep = 0;
+    RECT storageTrack = {};
+    RECT storageThumb = {};
+    bool storageDragging = false;
+    int storageDragOffset = 0;
     int scrollStartup = 0;
     int scrollLarge = 0;
     int scrollDeactivate = 0;

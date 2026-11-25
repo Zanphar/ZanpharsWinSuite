@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Changelog — Zanphar's WinSuite</title>
-<meta name="description" content="What changed in each Zanphar's WinSuite release: 0.2.4, 0.2.3, 0.2.2, 0.2.1, 0.2.0 and 0.1.0.">
+<meta name="description" content="What changed in each Zanphar's WinSuite release: 2.0.0, 0.2.5, 0.2.4, 0.2.3, 0.2.2, 0.2.1, 0.2.0 and 0.1.0.">
 <meta name="theme-color" content="#0d1015">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/site.css">
@@ -29,7 +29,7 @@
       <a href="privacy.html" data-nav="privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>Privacy</a>
     </nav>
     <div class="rail-foot">
-      <strong>Version 0.2.4</strong>
+      <strong>Version 2.0.0</strong>
       <p>Native Win32 &middot; no telemetry</p>
     </div>
   </aside>
@@ -42,10 +42,57 @@
       <p class="sub" style="margin-top:14px">This page summarises the releases. The complete, line-by-line log is in <a href="docs/CHANGES.txt">CHANGES.md</a>.</p>
     </header>
 
+    <section class="section reveal" aria-labelledby="v200">
+      <div class="release-head">
+        <span class="ver">2.0.0</span>
+        <span class="pill">Current</span>
+        <span class="pill muted">25 November 2026</span>
+      </div>
+      <div class="prose">
+        <p>Disk maintenance moves into the suite, Internet Connection Utility goes back to being a connection doctor, and the bundled tools carry the fixes made since 0.2.5.</p>
+
+        <h3>Storage</h3>
+        <ul>
+          <li><strong>A page for the drives.</strong> Every local volume is listed with the media type Windows reports, its free space, and the mode Windows' defragmenter will use: <strong>Defragment</strong> on a mechanical disk or <strong>TRIM</strong> on an SSD. A volume whose media type cannot be read shows a disabled <strong>Unavailable</strong> button instead of a guess.</li>
+          <li><strong>Asks first, then runs on a worker.</strong> A per-volume confirmation names the drive, its media and the exact mode before the administrator prompt. While <code>defrag.exe</code> runs, the page disables Refresh and every volume button, shows elapsed time, the reported percentage and a progress bar, and offers <strong>Cancel</strong>, which terminates the child process. The result (or defrag.exe's last error) is reported on the page.</li>
+          <li><strong>Reachable at every scale.</strong> The volume list follows the wheel one row per notch, and its scrollbar thumb can be dragged; row hit-testing is rebuilt after scrolling and dragging, so a press lands on the row under the pointer.</li>
+        </ul>
+
+        <h3>Internet Connection Utility 1.4.0.0</h3>
+        <ul>
+          <li><strong>Disk work leaves the doctor.</strong> The Defragment and TRIM repairs, the storage checks behind them and the <code>disks</code> module are gone; the Storage page now owns both actions. ICU keeps its 19 connection and system repairs.</li>
+        </ul>
+
+        <h3>Also in 2.0.0</h3>
+        <ul>
+          <li><strong>PCSpeedTest</strong> records whether each graphics row was timed on the GPU clock or wall time in a new <code>gpu_timing</code> column, adds a GPU frames row, and gains <code>--empty</code> for scheduled-task cleanup.</li>
+          <li><strong>Internet Tuning Wizard</strong> moves the Nagle switch in with the other switches, lets the adapter scrollbar be dragged, and no longer resets switches that were left off.</li>
+          <li><strong>Home Policy</strong> ships a catalog drift check after its 37 rows were audited against the installed ADMX files; three descriptions were corrected and tags no longer squeeze the registry path.</li>
+          <li><strong>HardWin</strong> carries ticked rows through an elevation restart and draws a tight <strong>HW</strong> mark in its 16 and 24 px frames.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section reveal" aria-labelledby="v025">
+      <div class="release-head">
+        <span class="ver">0.2.5</span>
+        <span class="pill muted">24 November 2026</span>
+      </div>
+      <div class="prose">
+        <p>Internet Connection Utility learns to look after the drives it is diagnosing, and the suite moves to 0.2.5.</p>
+
+        <h3>Internet Connection Utility 1.4.0.0</h3>
+        <ul>
+          <li><strong>Defrag and TRIM in the repair list, not a tenth program.</strong> The doctor names every local fixed volume with the media type its device reports and offers <strong>Defragment</strong> on a mechanical drive and <strong>TRIM now</strong> on an SSD, so nobody has to guess which maintenance a disk wants.</li>
+          <li><strong>Two new checks.</strong> Free-space fragmentation is measured from the NTFS volume bitmap and warns past 25%; on solid-state media the scan reports TRIM support and whether Windows is passing deletes on (<code>DisableDeleteNotify</code>).</li>
+          <li><strong>Documented interfaces only.</strong> Defragmentation runs Windows' own <code>defrag.exe /D</code>; TRIM is sent with <code>IOCTL_STORAGE_MANAGE_DATA_SET_ATTRIBUTES</code> for the ranges the file system has already released, so no allocated block is ever hinted as discardable. Both repairs are <code>ADMIN</code>, and the TRIM repair re-enables delete notifications first when Windows had them off.</li>
+        </ul>
+      </div>
+    </section>
+
     <section class="section reveal" aria-labelledby="v024">
       <div class="release-head">
         <span class="ver">0.2.4</span>
-        <span class="pill">Current</span>
         <span class="pill muted">24 October 2026</span>
       </div>
       <div class="prose">
@@ -200,7 +247,7 @@
 
     <section class="cta reveal">
       <div>
-        <h2>Get 0.2.4</h2>
+        <h2>Get 2.0.0</h2>
         <p>The archive this changelog describes, with its checksum published beside it.</p>
       </div>
       <div class="actions">
@@ -210,7 +257,7 @@
     </section>
 
     <footer class="site">
-      <span>Copyright © 2026 Charles McDonald. Licensed under the BSD 3-Clause License.</span>
+      <span>Copyright © 2026-2027 Charles McDonald. Licensed under the BSD 3-Clause License.</span>
       <nav aria-label="Footer">
         <a href="index.html">Home</a>
         <a href="features.html">Features</a>

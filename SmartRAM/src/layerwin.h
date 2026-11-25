@@ -20,7 +20,7 @@ public:
     bool Topmost() const { return topmost_; }
     void SetTopmost(bool on);
     void PlaceAt(int x, int y);          // physical screen coords
-    void PlaceDefault();                 // bottom-right of work area (virtual)
+    void PlaceDefault();                 // centre of the work area
 
 protected:
     LayerWindow() = default;

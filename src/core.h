@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -51,9 +52,33 @@ struct StorageDevice {
     uint64_t total = 0;
     uint64_t freeBytes = 0;
     bool accessible = false;  // media present and readable
+    bool mediaKnown = false;  // the device answered the seek-penalty query
+    bool ssd = false;         // no seek penalty: solid-state
 };
 
 std::vector<StorageDevice> CollectStorageDevices();
+
+// Empty when the volume is a local disk with readable, identified media; otherwise
+// the sentence explaining why it must be left alone. Shared by the page, the action
+// and the self-test so a disabled row and the worker can never disagree.
+std::wstring StorageOptimizeRefusal(const StorageDevice& device);
+
+// Runs Windows' own defragmenter on one local volume: /D on mechanical media,
+// /L (retrim) on solid-state. The caller must already be elevated. progress is
+// called with the percentage defrag.exe reports, when it reports one. Cancel
+// terminates the child process; the outcome then says it was cancelled.
+struct OptimizeOutcome {
+    bool ok = false;
+    bool cancelled = false;
+    std::wstring message;
+};
+OptimizeOutcome OptimizeVolume(const StorageDevice& device,
+                              const std::function<void(int)>& progress = {},
+                              const std::wstring& executable = L"defrag.exe");
+// Clears a previous cancel before a new operation starts. CancelVolumeOptimize()
+// terminates the current child process, if any.
+void ResetVolumeOptimize();
+void CancelVolumeOptimize();
 
 SysInfo CollectSystemInfo();
 double SampleCpuUsagePercent();          // blocks ~120 ms, returns 0..100

@@ -8,6 +8,553 @@ this folder.
 
 ## [Unreleased]
 
+### Added
+
+- **Browser Cleaner recognises Internet Explorer.** The catalog and the suite's
+  Browsers page now include IE alongside Chrome, Edge, Brave, Vivaldi, Opera,
+  Opera GX and Firefox, with its own selectable traces: **History** (the
+  WinINet History folder and the WebCache database), **Cookies** (INetCookies
+  and the roaming Cookies folder), **Cache** (INetCache), and **Session** (the
+  IE recovery folder). It is detected and closed like the other browsers;
+  Passwords and Autofill are not claimed for IE because it does not store them
+  in files this cleaner removes.
+
+### Changed
+
+- **System Turbo's dashboard can be resized and maximized.** The window now
+  uses a thick frame and a `WM_GETMINMAXINFO` floor of 660 x 752 client pixels
+  (DPI-scaled), so it cannot be dragged smaller than the layout it was designed
+  for. Cards stretch with the client width, the action buttons share the full
+  row, the memory card fills the remaining height, and painting is double-
+  buffered at the live client size so resizing never exposes stale pixels or
+  breaks the click targets.
+
+## [2.0.0] - 2026-11-25
+
+### Removed
+
+- **Defrag and TRIM leave Internet Connection Utility.** Disk optimization belongs with the disks,
+  not a connection doctor. The **Defragment hard disks** and **TRIM solid-state drives** repairs,
+  their storage checks (media type, free-space fragmentation, TRIM support and delete
+  notifications), and the `disks` module behind them are gone from ICU. The suite's **Storage**
+  page now owns both actions, so there is one place to pick a volume and see the result.
+
+### Added
+
+- **Zanphar's WinSuite gains a Storage page.** The suite window now has a **Storage** tab for
+the one storage job it was missing: each local volume is listed with the media type Windows
+reports through the seek-penalty query, its free space, and the mode Windows' own
+defragmenter will use — **Defragment** (`defrag.exe /D`) on a mechanical disk, **TRIM**
+(`defrag.exe /L`) on a solid-state drive. A volume whose media type cannot be read is shown
+with a disabled **Unavailable** button instead of being guessed at. Pressing Defragment or
+TRIM opens a per-volume confirmation that names the drive, its label, the media and the exact
+mode (`/D /H` for mechanical, `/L` for solid state), with No as the default, before the one
+administrator prompt. While `defrag.exe` runs, Refresh and every volume button are disabled;
+the page shows elapsed time, the percentage the defragmenter reports when available, and a
+progress bar. **Cancel** terminates the child process, and closing the window cancels a job
+rather than leaving it orphaned. The Windows defragmenter is resolved from System32 instead
+of searching beside the elevated suite; unknown, optical and network media are refused before
+a process starts. The volume list follows the mouse wheel and its scrollbar thumb can be
+dragged; presses are keyed by drive letter and the row hit rects are rebuilt at the release
+position, so a press after scrolling or dragging still lands on the row under the pointer. The
+suite's read-only Storage lists on Dashboard and System are unchanged.
+
+- **PCSpeedTest's CSV says which clock timed the graphics rows.** A new `gpu_timing`
+  column records `timestamp` for the three GPU figures, which are measured with D3D11
+  timestamp and disjoint queries, and `wall` for a build that has to use elapsed wall
+  time instead; `mixed` covers a run with both, and the column is empty when no graphics
+  figure was recorded. Rows written before the column existed migrate with it empty, so
+  the wall-clock rows that could not previously be told apart now read as legacy rather
+  than mixing in as timestamped runs. The header migration adds the column in place and
+  keeps every run.
+
+- **Internet Tuning Wizard puts the Nagle switch with the other switches.** The
+  adapter-specific Nagle and delayed ACK card sat under the adapter list on the connection
+  step, where it read as a note rather than a control. It is now a full-width switch below
+  the four machine-wide switches on the Tuning step, names the connection chosen in step 1,
+  and the review and result pages list it when it is on (and omit it when it is left off).
+
+- **Internet Tuning Wizard's adapter scrollbar can be dragged.** The thumb follows the
+  pointer from press to release instead of only paging when the track beside it is
+  clicked, and the rows are laid out for the new offset before the next press is
+  hit-tested, so a click straight after a drag selects the adapter under the cursor.
+
+- **Home Policy ships a drift check for its catalog.** `HomePolicy\tools\check-admx.ps1`
+  reads `src\catalog.cpp` and compares every row with the ADMX files in
+  `C:\Windows\PolicyDefinitions` on key, value name, scope and enabled/disabled data,
+  then prints one line per value and `CLEAN` or `DRIFT`, exiting 1 on drift so it can
+  gate a change. Inverted data is reported as such rather than as drift, because the
+  catalog is effect-oriented; Edge and Windows Script Host rows are listed with the
+  reason they have no ADMX. Offline and read-only.
+
+### Changed
+
+- **Home Policy's catalog was audited against the ADMX files Windows ships.** All 37
+  rows were matched by value name and key against `C:\Windows\PolicyDefinitions`: 36
+  agree exactly with their policy definition, and the last (Windows Script Host) is a
+  documented registry setting rather than an administrator-template value, which the
+  README now says. Three rows described the wrong thing and were corrected: the
+  activity-history row was titled as if it *kept* history while writing the two values
+  that stop it being recorded, the Edge row claimed to remove promotional tabs when
+  `ShowRecommendationsEnabled` only covers feature recommendations, and the no-auto-
+  restart row now carries Microsoft's own condition (scheduled installs) and its
+  documentation says the policy "doesn't work exactly as per description". The driver-
+  exclusion row is tagged **Not documented for Home**; the two update-deferral rows keep
+  their **Home ignores this** tag, which the ADMX editions confirm.
+
+- **HardWin's elevation hand-off carries the ticked rows.** *Restart as administrator*
+  used to launch a bare copy of the program, so the rows the user had ticked were left
+  behind and the new window started empty - and because the window that launched it was
+  still on screen, that copy could exit on the single-instance mutex before writing
+  anything. The staged ids now travel on the command line as `--apply=id,id`, the
+  receiving window ticks exactly those rows and hardens them itself, and a launch that
+  carries them waits for the window it replaces instead of bailing out. Nothing ticked
+  is still a plain restart.
+
+- **HardWin's 16 and 24 px frames carry a tight "HW".** Below 32 px eight or
+  seven characters come out under two pixels a letter, and the title bar uses
+  exactly those frames. They now draw **HW** on one line as glyph outlines, sized
+  to the card and placed on whole pixels, with the padlock and keyhole dropped
+  there instead of competing for the same few pixels. Stacking the letters was
+  tried and rejected: two rows of five pixels crowded each other. 32 px and up
+  still draw the words, and the keyhole still appears from 48 px.
+
+### Added
+
+- **PCSpeedTest can empty the CSV from a scheduled task.** `--empty` is the
+  console equivalent of the results reader's **Empty file**: it rewrites
+  `results.csv` with the header alone, prints how many runs went and the path it
+  emptied, reads the file back to prove the header survived, and exits 1 when
+  the rewrite fails — so a task's last run result means something and no window
+  ever appears.
+
+- **PCSpeedTest gains a third graphics row, GPU - frames.** The compute and
+  bandwidth rows say what the card can do, not what a game gets, so the same
+  Direct3D 11 device now renders a simple scene offscreen — a cleared 1080p
+  target, a depth buffer and 4096 blended quads spun by the vertex shader in one
+  instanced draw — for 0.5 s of GPU time and reports frames per second. It is
+  timed on the GPU's own clock like the other two rows, framed per frame so the
+  slice is the work rather than the gaps between submissions, and the note says
+  "GPU time only" so the figure is not read as a measured refresh rate. The
+  catalogue is fifteen metrics, `gpu_fps` is the new `results.csv` column
+  (appended last, so older files still load and older rows read as empty), and
+  the window's row list grew from fourteen to fifteen.
+
+### Fixed
+
+- **Internet Connection Utility's TRIM repair is bounded and reports as it goes.** A heavily
+  fragmented SSD could queue tens of thousands of 128-range requests in one run and show nothing
+  until it finished, so a slow drive looked hung. Each run now sends at most 32,768 ranges (256
+  requests), reports ranges sent and bytes trimmed to the Overview hero and the Repairs page while
+  it works — the footer bar runs during repairs too — and records the next free range under
+  `HKLM\SOFTWARE\Zanphar's WinSuite\InternetConnectionUtility`, so another run continues instead
+  of repeating the prefix. The result line states how much was trimmed and whether the cap was
+  reached; a complete run removes the resume point.
+
+- **Internet Tuning Wizard no longer resets switches that were left off.** A run
+  with the Nagle switch off still deleted `TcpAckFrequency`, `TCPNoDelay` and
+  `TcpDelAckTicks` and reported `Nagle is back to the Windows default`, although the review
+  page never listed that removal; the other four machine-wide switches were reset the same
+  way. Apply now writes only the switches that are on, the review lists exactly what it will
+  write or remove (the automatic DNS choice remains the one removal, clearing the adapter's
+  override), and the result page has a row only for what actually ran. **Restore Windows
+  defaults** still removes every value the wizard manages.
+
+- **Home Policy's tags no longer squeeze the registry path.** A tagged card reserved
+  150 logical pixels at the end of its path row for the caveat, which cut the Copilot
+  row at `...\Windows\Windows` and hid its value name at both 100% and 150% scaling.
+  Tagged cards are now one line taller, the caveat sits under the path in amber, and the
+  path runs the full card width, so `...\WindowsCopilot  -  TurnOffWindowsCopilot` reads
+  whole at both scales.
+
+- **Internet Tuning Wizard no longer calls a restored DNS "automatic".** The first real
+  GUI Apply/Restore run put the adapter's saved pair back (`127.0.0.1,1.1.1.1`) while the
+  result page said `DNS is back to automatic on this connection`. The row now says the DNS
+  is back to how it was before the wizard changed it, the restore summary no longer calls
+  that a Windows default, the review note matches, and the README says the saved pair
+  returns.
+
+## [0.2.5] - 2026-11-24
+
+### Added
+
+- **Internet Connection Utility 1.4.0.0 — defrag and TRIM inside the repair list.**
+  Two storage repairs join the catalogue: **Defragment hard disks** runs Windows' own
+  `defrag.exe /D` on every mechanical volume, and **TRIM solid-state drives** sends TRIM for the
+  free ranges of every SSD and re-enables `DisableDeleteNotify` when Windows had it switched off.
+  A new `disks` module reads the media type from `StorageDeviceSeekPenaltyProperty` and the bus
+  from `StorageDeviceProperty`, so the doctor offers the repair that suits the drive instead of
+  the user guessing. Two checks feed them: free-space fragmentation measured from the NTFS volume
+  bitmap, and TRIM support plus delete notifications. The TRIM request is
+  `IOCTL_STORAGE_MANAGE_DATA_SET_ATTRIBUTES` over clusters the file system has already released,
+  so no allocated block is ever hinted as discardable. Both repairs carry `ADMIN`.
+- **Internet Connection Utility** (`bin\InternetConnectionUtility.exe`) — a ninth
+  standalone program, now part of the suite: a connection doctor that measures
+  why a connection is failing, dropping or slow and repairs what it can. About
+  thirty checks cover the Winsock/TCP stack, adapter and link state, DHCP and
+  addressing, routing and interface errors, per-server DNS probes, ICMP
+  latency/jitter/loss, the TCP :443 handshake and HTTPS egress, captive
+  portals, a short throughput sample, retransmissions, path MTU, Windows
+  tuning (auto-tuning, NIC power, firewall profiles, core services, proxy/PAC)
+  and Wi-Fi (signal, band, channel occupancy, security, power saving). Results
+  stream in as each probe finishes and become a 0–100 score; the Wi-Fi tab
+  shows nearby networks and 2.4 GHz occupancy.
+- **Twenty-one repairs, labelled by risk.** Each repair carries `ADMIN`,
+  `CHANGES` or `RESTART`, risky ones ask first, and a repair that needs
+  elevation offers to relaunch the same executable as administrator. The
+  Activity tab logs everything measured and changed, and **Copy report** puts
+  a plain-text summary on the clipboard. A hosts reset leaves a timestamped
+  `.bak` beside the original.
+- **Internet Tuning Wizard** (`bin\InternetTuningWizard.exe`) — an eighth
+  standalone program: a three-step wizard that writes six documented network
+  settings on Windows 10 and 11 — network throttling off for the whole PC
+  (`NetworkThrottlingIndex = 0xFFFFFFFF`), IPv6 off (`DisabledComponents`
+  `= 0xFF`), Nagle and delayed ACK off on one adapter
+  (`TcpAckFrequency`/`TCPNoDelay`), and a DNS resolver for that adapter
+  (`NameServer`: system default, Cloudflare, Google or Quad9). The connection
+  comes from the adapters Windows reports, the review page lists every change
+  before anything is written, and **Restore Windows defaults** removes every
+  value again.
+- **Its Apply asks once, and reports per value.** The wizard opens `asInvoker`
+  so the whole review can be read without a prompt; Apply hands the plan to an
+  elevated copy on the command line, which writes the values, reads them back
+  and answers through a small text file, so the window shows a green or red row
+  for each one. DNS is flushed after a write. `--list` prints every adapter,
+  its resolvers and what the six settings currently read; `--selftest` proves
+  the provider table, the plan encoding used for the handoff, the review text,
+  the registry engine on a scratch key and the adapter enumeration.
+- **Every connected adapter, in a list that scrolls.** Step 1 no longer stops
+  at the first five adapters and no longer skips VPN or tunnel interfaces;
+  every connected adapter is offered, and the list scrolls with the wheel,
+  arrow keys or its scrollbar when it outgrows the page, clipped to its own
+  viewport so rows never paint over the DNS block.
+- **DNS that survives the lease.** The resolver write now covers both registry
+  sides: `NameServer` (what Windows prefers) and `DhcpNameServer` (what a
+  reconnect can fall back to), after saving the adapter's previous pair so
+  **Restore Windows defaults** can put the DHCP-provided list back instead of
+  leaving the adapter without one. Measured on Windows 11 26300: after
+  `ipconfig /renew`, `NameServer` still held `1.1.1.1,1.0.0.1` while Windows
+  rewrote `DhcpNameServer` to the router's `192.168.4.1`; restore returned both
+  to their pre-apply values. A seventh self-test covers the save/write/restore
+  round trip on a scratch key.
+- **Two more machine-wide switches, and Nagle gets a face.** Step 2 now also
+  offers the multimedia CPU reserve off (`SystemResponsiveness = 0`, the
+  companion of network throttling) and TIME_WAIT capped at 30 seconds
+  (`TcpTimedWaitDelay = 30`, for clients that exhaust ports), in a 2x2 grid that
+  fits the smallest window. Step 1 finally exposes the per-connection Nagle
+  switch the review page had been describing, now writing `TcpDelAckTicks = 0`
+  alongside `TcpAckFrequency`/`TCPNoDelay`; `--list` and `--help` report all six
+  settings, and the self-test covers the new constants and the six-line review.
+- **A result page you can act on.** The page that reports the elevated copy's
+  rows now keeps **Back** to the review and **Restore Windows defaults** (armed
+  on the first click), so a run can be undone without walking the wizard again;
+  declining the UAC prompt lands there with a red row instead of stranding the
+  window.
+- **A speedometer icon**, drawn by `tools\make_icon.ps1`: the accent arc, a
+  bright needle and an accent hub on the suite card, with a thicker arc and no
+  tick dots at 16 and 24 px.
+- **Home Policy** (`bin\HomePolicy.exe`) — a seventh standalone program: a
+  Group Policy Editor for Windows 10 Home and Windows 11 Home, where `gpedit.msc`
+  does not exist but the components that read policies still honour the same
+  `HKLM\SOFTWARE\Policies` values. Thirty-seven settings in seven categories
+  (Windows Update, privacy and telemetry, Start/search/taskbar, File Explorer,
+  system and apps, security, Edge), each row one named policy value with a plain
+  sentence and the three states the official editor offers: **Not configured**,
+  **Enabled**, **Disabled**. Not configured removes the value rather than writing
+  a guess, and Disabled writes the policy's off-data so the three states stay
+  distinguishable in the registry instead of collapsing into "absent".
+- **The copyright sits in the footer.** A hairline rule separates the action
+  row from a bottom row that carries `© 2026-2027 Charles McDonald` on the left
+  and the administrator link on the right - faint enough to stay out of the way,
+  present on every screen size.
+- **Home Policy stages every choice before it writes one.** A click marks the
+  card, counts in the footer and enables **Discard**; the first **Apply changes**
+  asks for administrator rights once and reopens the window elevated rather than
+  letting each row fail with Access denied. The manifest stays `asInvoker`, so the
+  catalog is fully readable - with `--list` too - before any prompt, and declining
+  UAC leaves nothing changed. **Back up...** writes a UTF-16 `.reg` containing
+  every catalog value that is currently configured.
+- **Every row audited against the ADMX files on this build.** Each path, value
+  name and on/off pair was checked against `C:\Windows\PolicyDefinitions` and
+  Microsoft's policy documentation, and several were wrong: window shaking, Open
+  with and Copilot pointed at keys Windows no longer reads, thumbnail caching and
+  the Windows-key shortcuts were written machine-wide though their policies are
+  user-scope, Windows Script Host aimed at a `Policies` key that does not exist
+  instead of `SOFTWARE\Microsoft\Windows Script Host\Settings`, and Edge's
+  deprecated `PromotionalTabsEnabled` became `ShowRecommendationsEnabled`.
+  OneDrive's row is renamed for what `DisableFileSyncNGSC` actually does - it
+  stops the whole sync client, not just personal accounts. The telemetry row is
+  gone, because Microsoft documents `AllowTelemetry = 0` as equal to `1` on Home
+  and the row could not change anything; the two update-deferral rows now read
+  **Home ignores this**, since deferral is a Windows Update for Business feature
+  documented for Pro, Enterprise and Education only; Cortana and Copilot carry
+  **Deprecated by Microsoft** instead of the old umbrella tag.
+  `--selftest` proves the catalog (no empty rows, no duplicate
+  targets, at least thirty settings), the three-state mapping, and an
+  enabled/disabled/not-configured round trip on a scratch key under
+  `HKCU\Software\ZanpharsWinSuite\HomePolicy\selftest` that it deletes again.
+- **Its icon is the settings mark in two tiers.** Three slider tracks with **GP**
+  over them: the sliders are a watermark from 32 px up, and at 16 and 24 px - the
+  frames the title bar picks, where two letters are a smudge - they are drawn
+  alone, full width and brighter, in the same `res\app.ico` that Explorer reads.
+
+- **HardWin** (`bin\HardWin.exe`) — a fifth standalone program that hardens,
+  tunes and stabilises a Windows 10 or 11 machine in place. Fourteen settings
+  in three groups: six security rows (SMBv1 off, LLMNR off, AutoRun/AutoPlay
+  off, SmartScreen on, PowerShell script-block logging on, Defender
+  unwanted-app blocking on), three performance rows (best-performance visual
+  effects, no ten-second startup-program delay, a 100 ms menu delay) and five
+  reliability rows (restart-after-failure actions on Event Log, WMI and
+  Defender, automatic maintenance left on, no forced restart while programs are
+  open, fast startup off so every boot is a full one, and the automatic crash
+  dump left on so a second failure can be diagnosed).
+- **HardWin only counts a change once it reads back.** After every write the
+  value is re-read, and a row whose effective value did not take - a group
+  policy, a filter driver, another tool - is rolled back on the spot and named
+  in the footer rather than shown as hardened; the service row re-queries the
+  service manager to confirm the recovery actions in force. Every applied,
+  reverted, refused or unverified change is appended to
+  `%LOCALAPPDATA%\HardWin\hardwin.log` with a timestamp and the reason, a named
+  mutex keeps a second copy from writing the same journal concurrently, and the
+  first read of a session reports any row that still has a saved original but no
+  longer reads hardened, so drift is a named fact instead of a silent one.
+  Harden selected and Revert selected both go through one engine batch routine
+  that owns the skip rules (already hardened, no saved original) and the refusal
+  list, so the window has a single loop to keep in step rather than its own
+  copy of the engine's.
+- **HardWin's window is measured at the monitor's own DPI.** The height the
+  catalog needs is computed from the real DPI once the window exists and applied
+  before the first paint, instead of being passed to `CreateWindowEx` while the
+  process still assumes 96 DPI, and the caption and borders are measured with
+  `AdjustWindowRectExForDpi` so the client area is not short by a row at 125 % or
+  150 %. The window is resizable down to 620 x 430 logical pixels, and below the
+  full catalog height the row list scrolls rather than running under the footer.
+  Moving the window onto a monitor with a different scale recomputes that same
+  catalog height at the new DPI and then clamps it to the new monitor's work
+  area, instead of multiplying the old frame by the DPI ratio - scaling keeps
+  whatever height the window happened to have, so a window dragged from a
+  100 % monitor lands on half a row at 150 % and a window dragged the other way
+  wastes the top of the list. The self-test drives the handler in-process
+  (`WM_DPICHANGED` with a null suggested rectangle) and fails if the height it
+  settles on depends on the height it started from.
+  Rows in that viewport are counted by walking the list the way it is drawn,
+  group headings included, so a short window shows as many whole rows as fit.
+  The position bar appears only when the list genuinely overflows.
+  Every write saves the original value first - its type, its bytes and whether
+  it existed at all - under the hive that owns the setting, so **Revert** puts
+  back exactly what was there, removes a value this tool created and drops a
+  key it had to create. A setting Windows already ships hardened reads as
+  hardened when it is unset instead of being "fixed"; a row the process cannot
+  reach reads **needs administrator** rather than open. Every row carries a tick
+  of its own - a click anywhere on the row ticks or unticks it - with **Select
+  all** and **Clear** at the end of the status line, and the line counts both
+  readings ("3 of 12 hardened - 2 selected"). **Harden selected** and **Revert
+  selected** act on the ticked rows only, in catalog order: hardening skips and
+  counts the rows already in that state, reverting skips the rows with no saved
+  value, and any refusal is named so a selection is never reported as done when
+  a row was left alone. A tick survives **Re-check**, because the selection
+  belongs to the list rather than to a run of the audit. The manifest is
+  `asInvoker`, so the window offers an administrator restart for the rows that
+  need it; `--audit` prints what every check reads without
+  writing anything, and `--selftest` runs twelve checks over the catalog, the
+  journal round-trip, the read-back after a write, the batch skip rule, the
+  window's response to a DPI change and the service-action encoding, ending in
+  the usual `RESULT:` line. The window opens at 940 x 700 logical pixels but is clamped to
+  the work area of the monitor it sits on, and the row list became a viewport in
+  that space: it scrolls one whole row per wheel notch, ends on a row's bottom
+  edge, draws a row only once half of it is in view and shows a slim position
+  bar when there is more list than window - which is what makes fourteen rows fit
+  a 768-pixel display at 150 %, where the work area is about 485 logical pixels.
+  Every metric and font is DPI-scaled, so the 150 % window is the 100 % layout
+  at 1.5 x rather than a second layout to keep in step. The program also carries
+  its own icon - a padlock behind the initials **H** (top left) and **W** (lower
+  right) on the suite's dark card - embedded as resource id 2 and set on the
+  window class, so the title bar and the taskbar button carry it; the artwork is
+  regenerated by `HardWin\tools\make_icon.ps1`, which writes `res\app.ico`
+  (16/24/32/48/64 as DIBs, 128/256 as PNG) and a 256-pixel
+  `res\icon-preview.png` for use outside the binary. Folders: `HardWin\src\`
+  (`harden`, `main`), `HardWin\res\` and `HardWin\tools\`; `build_all.bat`
+  gained its recipe row.
+
+- **PCSpeedTest** (`bin\PCSpeedTest.exe`) — a sixth standalone program that
+  measures processor, memory, disk, LAN and internet speed and appends every
+  run to a CSV for comparison. Twelve rows in four groups: two processor rows
+  (a dependent integer and float loop on one thread and on every thread),
+  two memory rows (64 MiB copy bandwidth, and the latency of a dependent load
+  over a shuffled 32 MiB chain), two disk rows (192 MiB written and flushed,
+  then read back with `FILE_FLAG_NO_BUFFERING`), and six network rows: the
+  default route's negotiated link speed, TCP loopback throughput, gateway
+  latency, internet latency with jitter and loss, and HTTPS download and
+  upload rates against `speed.cloudflare.com` with byte and time caps.
+  A row that cannot be measured - ICMP filtered, no gateway, a server error,
+  no disk room - carries the reason in the window and leaves its CSV column
+  empty instead of writing a zero, and never stops the rest of the run.
+  Every completed run appends one RFC 4180 line to
+  `%LOCALAPPDATA%\PCSpeedTest\results.csv` with the timestamp, host,
+  processor, core count, RAM and OS beside the figures; a single row measured
+  from the window is not written, so the file holds only full runs. **View
+  results** reads the file back as a window of its own - one card per run,
+  newest first, with the timestamp, the machine and the twelve figures as four
+  columns by three rows, a dash where a column was left empty - with **Open in
+  spreadsheet** to hand the file to the default application, and a click on a
+  card doing the same.
+  `--run` prints the twelve figures and appends a line without a window;
+  `--selftest` runs eleven engine checks with no network traffic and no
+  leftover files, including the CSV reader over a synthetic file of the
+  self-test's own making - a quoted host with a comma in it, a quoted cpu with
+  a quote in it and one blank metric - so quoted fields, the blank column and
+  the column count are proved on every build, and a second file under the older
+  header proves the migration keeps its row and its figures; the user's
+  results.csv is never opened.
+- **PCSpeedTest names the machine it is on, not what the registry claims.**
+  Windows 11 keeps `ProductName` = `Windows 10 Pro` for compatibility, so the
+  version word now comes from the build number (22000 and above is Windows 11,
+  `Windows Server ...` is left alone), with edition, display version and UBR
+  beside it. Physical cores come from `RelationProcessorCore` instead of the
+  thread count - the old line called an i7-6700K "8 cores" - and the
+  architecture from `GetNativeSystemInfo`. The window draws it in two lines
+  (hardware, then platform with the adapter and its speed) and `--run` prints
+  the same. In the CSV, `cores` is now physical with a new `threads` column and
+  `arch` beside it; a file under the older header is rewritten in place on the
+  next append, moving its logical count to `threads` and correcting a Windows 10
+  claim that sits beside a 22000+ build.
+- **One copyright across all eight binaries and the pages that show it.** Every
+  version resource now reads `Copyright © 2026-2027 Charles McDonald. BSD
+  3-Clause License.` (Browser Cleaner keeps its "not affiliated with IObit"
+  clause), the suite's Settings footer and licence dialog carry the same years,
+  and `LICENSE.md` and the website's licence page match them. The two page
+  strings and the self-test that looks for the licence line moved together, so
+  the check still proves the dialog text is the licence the file holds. The
+  Windows version each program reports was checked at the same time: the suite
+  already names 11 by build number (22000 and up) and no other program prints a
+  version word at all, so PCSpeedTest was the only place the registry's
+  `ProductName` had been repeated.
+- **PCSpeedTest records the graphics adapter and the memory modules too.** The
+  description under the title is three lines now: the processor, cores and
+  installed memory with the modules' speed and maker; the adapter attached to
+  the desktop with its driver version; then the platform. The adapter comes from
+  `EnumDisplayDevices`, its driver from the display class key whose `DriverDesc`
+  matches it, and the memory from SMBIOS type 17 - the configured speed and the
+  manufacturer, `mixed` when the modules differ and a range when their rates do.
+  Every one of those fields is left empty when Windows will not report it rather
+  than guessed, and the CSV grew `ram_speed`, `ram_maker`, `gpu` and
+  `gpu_driver` columns; a file written under the older header picks the new
+  columns up empty on its next append. A self-test check parses a firmware table
+  the test builds itself, so the offsets are proved without hardware.
+- **Every product starts in the centre of the work area.** Zanphar's WinSuite,
+  DNS Protect, System Turbo and HardWin already placed themselves there;
+  Browser Cleaner, PCSpeedTest (its window and the results viewer) and the
+  Smart RAM card now do the same instead of taking whatever corner Windows
+  picked. Each centres on the monitor the window lands on rather than a
+  hard-coded screen, so a second display is handled the same way, and the card
+  still remembers where it was dragged to - the centre is only where a machine
+  that has never seen it puts it.
+- **PCSpeedTest measures the graphics card too.** Two rows in a new Graphics
+  group: a Direct3D 11 compute shader's multiply-add rate in GFLOP/s (four
+  independent chains over 262144 lanes) and a 64 MiB texture copy's bandwidth in
+  GB/s. Both are timed on the GPU's own clock with timestamp queries over a
+  batch whose size is calibrated by one timed dispatch, so the gaps between
+  submissions are not counted as work, and the queue is drained before the clock
+  is read. A session with no Direct3D 11 device says so where the figure would
+  be, like any other blocked row. The CSV grew `gpu_gflops` and `gpu_bandwidth`,
+  the window and its results cards went to fourteen rows (four columns by four),
+  and `--selftest` runs a dispatch as its fourteenth check: a plausible rate, or
+  the reason there is none.
+- **The results viewer can empty results.csv.** **Empty file** sits beside
+  **Results folder** and **Close**; it asks first, naming how many runs go and
+  defaulting to **No**, and then leaves the file with its header and nothing
+  else - so the reader shows "holds a header and no runs" instead of cards, and
+  the next run appends to a file that still knows its columns. The window
+  reloads in place; nothing else in the folder is touched. A fourteenth
+  self-test check appends two runs to a temporary file, empties it, and asserts
+  the header survived and the reader found nothing.
+- **HardWin's icon carries the name, not the initials.** The tile reads
+  **Hardened** over **Windows**, with a padlock behind it as a watermark - body
+  and shackle in two dim slate tones a step above the card, keyhole drawn only
+  from 48 px up - so the words are the mark and the lock is what they stand for.
+  Each line is measured and scaled to the same width, because "Hardened" is the
+  longer word and two lines ending at different edges look tilted. At 16 and 24
+  px the words are dropped instead of smeared - those frames, which are what the
+  title bar and small icon views pick, carry the lock alone, larger, filling the
+  tile, in brighter tones with the keyhole from 24 px up. So the mark degrades on
+  purpose: lock, then lock under the name. The same `res\app.ico` is what the
+  window class sets on the title bar
+  and taskbar (resource id 2) and what Explorer reads from the exe, so the tile
+  that ships is the tile that is drawn. The window follows the house layout - DPI-scaled, scrolls whole rows,
+  a row click measures just that row, **Run all** becomes **Stop** while a run
+  is in flight - and carries its own speedometer icon from
+  `PCSpeedTest\tools\make_icon.ps1`. `build_all.bat` gained its recipe row.
+
+The tree keeps its sources, its documents and the reference screenshots, and
+nothing that a build can produce; every binary and the release package were then
+built again from that clean tree.
+
+- **Home Policy has a console mode for one setting.**
+  `HomePolicy.exe --apply "Widgets board" disabled` resolves a title (any
+  unique, case-insensitive part of one; an exact title wins), writes that row,
+  reads the registry back and prints before / asked / reads plus the raw DWORD,
+  exiting 0 only when the read-back matches, 1 when the write or read failed and
+  2 for a bad or ambiguous argument. `not-configured` removes the value again,
+  so one real policy can be applied and reverted from an elevated shell without
+  opening the window. The internal hand-off flag is now `--staged`, so `--apply`
+  means exactly one thing, and `--selftest` gained a sixth check that a partial
+  title resolves to one row and that the three state words are understood.
+
+### Changed
+
+- **`.gitignore` covers build intermediates.** `*.o`, `*.obj` and `*.res` were
+  invisible to the ignore file in some folders and tracked in others, which is how
+  `BrowserCleaner/src/resources.o` came to be committed in the first place. The
+  root file now ignores all three, together with `SmartRAM/build/`,
+  `SmartRAM/build-mingw/`, `SmartRAM/dist/` and
+  `BrowserCleaner/BrowserCleaner.exe`, so a local build leaves nothing behind for
+  `git add` to reach. The README's repository tree follows the removals below and
+  now says that the tree keeps no build intermediates.
+- **The binaries and the package come from a clean rebuild.** `release.bat
+  /build` wiped `bin\` and rebuilt all seven executables from the cleaned tree -
+  62 self-test checks pass and every import table names a Windows DLL - then
+  restaged `release\Zanphar-WinSuite-v0.2.4\` and the archive beside it, so the
+  executables, the package and the copy the website hands out are one build.
+  `website/downloads/` and the checksum printed on the download page were
+  refreshed to the new archive.
+
+### Removed
+
+- **Per-project build trees.** `SmartRAM/build-mingw/` - twenty-eight files of a
+  CMake/Ninja tree whose cached compiler paths named an older checkout - and the
+  ignored `SmartRAM/build/`, `DNSProtect/mingw-override/` and
+  `SystemTurbo/mingw-override/` folders. `SmartRAM/tools/build-mingw.ps1` and
+  `package.ps1` still produce those trees on demand, so no maintainer step
+  depended on them being in the repository.
+- **Object files and other build output.** `BrowserCleaner/src/resources.o`, the
+  suite's `build\app.res.o` and `build\agent.res.o`, the ignored
+  `SystemTurbo/SystemTurbo.exe` sitting beside its sources, and the `build\`
+  scratch area with its `warn\` folder and the deploy staging. `build.bat` and
+  `build_all.bat` recreate whatever they need on every run.
+- **Orphaned single-program executables and archives.**
+  `BrowserCleaner/BrowserCleaner.exe` (3.4 MB) sat next to the sources it was
+  built from, and `SmartRAM/dist/` held a per-program ZIP and checksum written
+  before the suite packaged all six programs as one archive. No script, CI step or
+  document referenced either copy: the only executables the project ships are
+  `bin\*.exe`, and the only archive is the one `release.bat` writes.
+- **Reference captures nothing was using.** The `shots\*.bmp` scratch renders; the
+  `shots\*.png` and `SmartRAM\tools\shot_*.png` captures the README points at stay
+  where they were.
+
+### Fixed
+
+- **Home Policy carries staged choices through elevation.** The unelevated
+  window used to launch an elevated copy and drop its staging, and that copy
+  could exit on the single-instance mutex while the first window was still
+  alive - so nothing was written. Apply now encodes the staged rows as
+  `--apply "index:state;..."`, hands them to the elevated window, closes
+  itself so the lock is free, and the new window waits for the handover (up to
+  ten seconds) instead of exiting. It writes exactly those rows, re-reads the
+  registry, and reports what landed; a declined UAC prompt leaves the original
+  window open with every choice still staged. `--selftest` gained a fifth
+  check that encodes, parses and applies a staged list to a scratch key, and a
+  live two-process run proved the waiting child consumes the list.
+
 ## [0.2.4] - 2026-10-24
 
 Game Booster learns the long list of background services a gaming session does

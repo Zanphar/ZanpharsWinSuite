@@ -1,0 +1,18 @@
+# Build output
+HomePolicy.exe
+*.o
+*.obj
+*.res
+
+# Toolchain-generated manifest override
+mingw-override/
+
+# IDE / tools
+.vs/
+.vscode/
+.idea/
+.cache/
+
+# OS
+Thumbs.db
+Desktop.ini

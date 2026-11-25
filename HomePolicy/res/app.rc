@@ -1,0 +1,43 @@
+#pragma code_page(65001)  // the © in LegalCopyright is UTF-8
+// ============================================================================
+//  app.rc — manifest and version information.
+//
+//  The `1 24 "app.manifest"` line is what makes windres emit the manifest
+//  override object, so the linker embeds this manifest instead of MinGW's own.
+// ============================================================================
+
+#include <winver.h>
+
+1 24 "app.manifest"
+
+// Resource id 2, not 1: the manifest already owns id 1 in its own type, and
+// keeping the icon on 2 matches the other suite programs.
+2 ICON "app.ico"
+
+1 VERSIONINFO
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName",      "Charles McDonald"
+      VALUE "FileDescription",  "Group Policy Editor for Windows 10 Home and Windows 11 Home"
+      VALUE "FileVersion",      "1.0.0.0"
+      VALUE "InternalName",     "homepolicy"
+      VALUE "LegalCopyright",   "Copyright © 2026-2027 Charles McDonald. BSD 3-Clause License."
+      VALUE "OriginalFilename", "HomePolicy.exe"
+      VALUE "ProductName",      "Home Policy"
+      VALUE "ProductVersion",   "1.0.0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 0x04B0
+  END
+END

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Download — Zanphar's WinSuite 0.2.4</title>
-<meta name="description" content="Download Zanphar's WinSuite 0.2.4 for Windows 10 and 11 x64: a 3 MB archive, no installer, published SHA-256 checksums.">
+<title>Download — Zanphar's WinSuite 2.0.0</title>
+<meta name="description" content="Download Zanphar's WinSuite 2.0.0 for Windows 10 and 11 x64: a 4.8 MB archive, no installer, published SHA-256 checksums.">
 <meta name="theme-color" content="#0d1015">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/site.css">
@@ -29,7 +29,7 @@
       <a href="privacy.html" data-nav="privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>Privacy</a>
     </nav>
     <div class="rail-foot">
-      <strong>Version 0.2.4</strong>
+      <strong>Version 2.0.0</strong>
       <p>Native Win32 &middot; no telemetry</p>
     </div>
   </aside>
@@ -37,34 +37,34 @@
   <main id="main">
     <header class="reveal">
       <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Windows 10 &amp; 11 &middot; x64</p>
-      <h1>Download <span class="accent">0.2.4</span>.</h1>
-      <p class="lead">One archive. Six executables, the three documents, a manifest and a checksum list. No installer, no runtime, no account — unzip it wherever you keep portable tools.</p>
+      <h1>Download <span class="accent">2.0.0</span>.</h1>
+      <p class="lead">One archive. Eleven executables, the three documents, a manifest and a checksum list. No installer, no runtime, no account — unzip it wherever you keep portable tools.</p>
     </header>
 
     <section class="section reveal" aria-labelledby="release">
       <div class="release-head">
-        <span class="ver">Zanphar-WinSuite-v0.2.4.zip</span>
+        <span class="ver">Zanphar-WinSuite-v2.0.0.zip</span>
         <span class="pill">Latest</span>
         <span class="pill muted">x64</span>
         <span style="flex:1"></span>
-        <a class="btn" href="downloads/Zanphar-WinSuite-v0.2.4.zip">
+        <a class="btn" href="downloads/Zanphar-WinSuite-v2.0.0.zip">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg>
           Download the archive
         </a>
       </div>
       <div class="hash" style="margin-top:14px">
         <span>SHA-256 of the archive</span>
-        <code style="flex:1;min-width:240px">840c17c0afd2dddb16b16746f5001cf04dae8e0b608a9346bd60b0ce954d829e</code>
-        <button class="btn ghost small" type="button" data-copy="840c17c0afd2dddb16b16746f5001cf04dae8e0b608a9346bd60b0ce954d829e"><span>Copy</span></button>
+        <code style="flex:1;min-width:240px">8f52452832cf96bab0d237101578de469d609210e5dc23b665229c1d377aa4ed</code>
+        <button class="btn ghost small" type="button" data-copy="8f52452832cf96bab0d237101578de469d609210e5dc23b665229c1d377aa4ed"><span>Copy</span></button>
       </div>
-      <p class="sub" style="margin-top:12px;font-size:13px">The archive sits beside this page in <code>downloads\</code>, next to <code>Zanphar-WinSuite-v0.2.4.zip.sha256</code>. Every build publishes the archive checksum and a per-file <code>SHA256SUMS.txt</code> inside the package.</p>
+      <p class="sub" style="margin-top:12px;font-size:13px">The archive sits beside this page in <code>downloads\</code>, next to <code>Zanphar-WinSuite-v2.0.0.zip.sha256</code>. Every build publishes the archive checksum and a per-file <code>SHA256SUMS.txt</code> inside the package.</p>
     </section>
 
     <section class="section reveal" id="inside" aria-labelledby="inside-h">
       <div class="section-head">
         <div>
           <h2 id="inside-h">What is in the package</h2>
-          <p>Six executables — the window and the four standalone engines plus the optional task agent — and the paperwork that matches this version.</p>
+          <p>Eleven executables — the window, the nine standalone tools and the optional task agent — and the paperwork that matches this version.</p>
         </div>
       </div>
       <div class="table-wrap">
@@ -73,11 +73,16 @@
             <tr><th scope="col">File</th><th scope="col">What it is</th><th scope="col">Runs as</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>ZanpharsWinSuite.exe</code></td><td>The window: fourteen pages, one elevation prompt</td><td>Standard user</td></tr>
+            <tr><td><code>ZanpharsWinSuite.exe</code></td><td>The window: fifteen pages, one elevation prompt</td><td>Standard user</td></tr>
             <tr><td><code>BrowserCleaner.exe</code></td><td>Browser Cleaner on its own</td><td>Standard user</td></tr>
             <tr><td><code>DNSProtect.exe</code></td><td>Resolver setter and watchdog</td><td>Administrator</td></tr>
             <tr><td><code>SmartRAM.exe</code></td><td>Automatic memory cleaner</td><td>Standard user</td></tr>
             <tr><td><code>SystemTurbo.exe</code></td><td>Power plan, services and Game DVR profile</td><td>Administrator</td></tr>
+            <tr><td><code>HardWin.exe</code></td><td>Reversible hardening, tuning and recovery for Windows 10 and 11</td><td>Standard user; asks to elevate</td></tr>
+            <tr><td><code>PCSpeedTest.exe</code></td><td>CPU, memory, disk, LAN and internet speed, with every run appended to a CSV</td><td>Standard user</td></tr>
+            <tr><td><code>HomePolicy.exe</code></td><td>Group Policy Editor for Home editions, with per-setting backup</td><td>Standard user; asks to elevate</td></tr>
+            <tr><td><code>InternetTuningWizard.exe</code></td><td>Three-step network tuning: throttling, IPv6, Nagle and DNS</td><td>Standard user; asks to elevate</td></tr>
+            <tr><td><code>InternetConnectionUtility.exe</code></td><td>Connection doctor: about thirty network checks, a score and nineteen repairs</td><td>Standard user; asks to elevate</td></tr>
             <tr><td><code>WinSuiteAgent.exe</code></td><td>Applies saved task rules; registered only when you save one</td><td>Standard user</td></tr>
             <tr><td><code>README.md</code>, <code>CHANGES.md</code>, <code>LICENSE.md</code></td><td>Documentation and the BSD 3-Clause agreement</td><td>—</td></tr>
             <tr><td><code>MANIFEST.txt</code>, <code>SHA256SUMS.txt</code></td><td>Per-program version, size, publisher and hashes</td><td>—</td></tr>
@@ -97,13 +102,13 @@
         <article class="card">
           <h3>Windows PowerShell</h3>
           <p>Compare the archive's hash with the published one.</p>
-          <pre><code>Get-FileHash .\Zanphar-WinSuite-v0.2.4.zip -Algorithm SHA256</code></pre>
+          <pre><code>Get-FileHash .\Zanphar-WinSuite-v2.0.0.zip -Algorithm SHA256</code></pre>
         </article>
         <article class="card">
           <h3>Git Bash, WSL or Linux</h3>
           <p>Checks the archive and, once extracted, every packaged file.</p>
-          <pre><code>sha256sum -c Zanphar-WinSuite-v0.2.4.zip.sha256
-cd Zanphar-WinSuite-v0.2.4
+          <pre><code>sha256sum -c Zanphar-WinSuite-v2.0.0.zip.sha256
+cd Zanphar-WinSuite-v2.0.0
 sha256sum -c SHA256SUMS.txt</code></pre>
         </article>
       </div>
@@ -121,7 +126,7 @@ sha256sum -c SHA256SUMS.txt</code></pre>
           <tbody>
             <tr><th scope="row">Operating system</th><td>Windows 10 or Windows 11, 64-bit</td></tr>
             <tr><th scope="row">Architecture</th><td>x64; the executables are statically linked against the compiler runtime</td></tr>
-            <tr><th scope="row">Disk space</th><td>About 8 MB extracted</td></tr>
+            <tr><th scope="row">Disk space</th><td>About 12 MB extracted</td></tr>
             <tr><th scope="row">Privileges</th><td>Standard user for the window; administrator only for the pages that change the machine</td></tr>
             <tr><th scope="row">Network</th><td>None required. The latency check uses ICMP to the host you type; DNS uses the resolver you pick</td></tr>
             <tr><th scope="row">Dependencies</th><td>None beyond the DLLs Windows itself provides</td></tr>
@@ -186,7 +191,7 @@ sha256sum -c SHA256SUMS.txt</code></pre>
     </section>
 
     <footer class="site">
-      <span>Copyright © 2026 Charles McDonald. Licensed under the BSD 3-Clause License.</span>
+      <span>Copyright © 2026-2027 Charles McDonald. Licensed under the BSD 3-Clause License.</span>
       <nav aria-label="Footer">
         <a href="index.html">Home</a>
         <a href="features.html">Features</a>

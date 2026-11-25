@@ -50,6 +50,11 @@ set "PROJECTS=BrowserCleaner|BrowserCleaner|-lgdiplus -lshell32 -lole32 -luuid -
 set "PROJECTS=%PROJECTS%;DNSProtect|DNSProtect|-ladvapi32 -lshell32 -lole32 -luuid -liphlpapi -lws2_32 -lcomctl32 -lgdi32 -luser32 -ldwmapi"
 set "PROJECTS=%PROJECTS%;SmartRAM|SmartRAM|-ld2d1 -ldwrite -luuid -lgdi32 -luser32 -lshell32 -ladvapi32 -lole32 -lpsapi"
 set "PROJECTS=%PROJECTS%;SystemTurbo|SystemTurbo|-ladvapi32 -lshell32 -lole32 -luuid -lcomctl32 -lgdi32 -luser32 -ldwmapi -lpsapi -lpowrprof"
+set "PROJECTS=%PROJECTS%;HardWin|HardWin|-ladvapi32 -lshell32 -luser32 -lgdi32 -ldwmapi"
+set "PROJECTS=%PROJECTS%;PCSpeedTest|PCSpeedTest|-lwinhttp -liphlpapi -lws2_32 -ladvapi32 -lshell32 -lole32 -luuid -lgdi32 -luser32 -ldwmapi -ld3d11 -ld3dcompiler"
+set "PROJECTS=%PROJECTS%;HomePolicy|HomePolicy|-ladvapi32 -lshell32 -lcomdlg32 -luser32 -lgdi32 -ldwmapi"
+set "PROJECTS=%PROJECTS%;InternetTuningWizard|InternetTuningWizard|-ladvapi32 -liphlpapi -lws2_32 -ldnsapi -lshell32 -luser32 -lgdi32 -ldwmapi"
+set "PROJECTS=%PROJECTS%;InternetConnectionUtility|InternetConnectionUtility|-lgdiplus -lwlanapi -liphlpapi -lwinhttp -ldwmapi -lws2_32 -lole32 -luuid -lshell32 -ladvapi32 -lgdi32 -luser32"
 set "PROJECTS=%PROJECTS%;"
 
 set "FAILED=0"

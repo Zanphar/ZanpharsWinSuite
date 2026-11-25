@@ -22,9 +22,9 @@ Then open <http://127.0.0.1:8123/>.
 |---|---|
 | `index.html` | Home: hero, the dashboard as the product shot, six feature cards, a look inside, how it works, and the pitch for a native build |
 | `features.html` | Every page of the suite in detail, with a screenshot per section, plus the four engines |
-| `screenshots.html` | Gallery of all twelve page captures with a click-to-zoom viewer |
+| `screenshots.html` | Gallery of all thirteen page captures with a click-to-zoom viewer |
 | `download.html` | Version, package contents, checksums, requirements, first run, removal, building from source |
-| `changelog.html` | 0.2.4, 0.2.3, 0.2.2, 0.2.1, 0.2.0 and 0.1.0 summaries; links to the full `CHANGES.md` |
+| `changelog.html` | 2.0.0, 0.2.5, 0.2.4, 0.2.3, 0.2.2, 0.2.1, 0.2.0 and 0.1.0 summaries; links to the full `CHANGES.md` |
 | `license.html` | The BSD 3-Clause agreement, word for word |
 | `privacy.html` | Every file the suite writes and every packet it sends |
 
@@ -35,8 +35,9 @@ plain, dependency-free files.
 
 `assets/img/pages/*.png` were captured from `bin\ZanpharsWinSuite.exe` at the
 1024 × 768 design size with the window moved to a fixed position, then cropped
-to the client area. The Startup and Deactivate captures were left out on
-purpose: they list whatever the capturing machine happens to have installed.
+to the client area. Storage is included; the Startup and Deactivate captures
+were left out on purpose because they list whatever the capturing machine
+happens to have installed.
 
 To refresh them, run the built window, open each page, and save the client area
 to the same file names. Nothing in the site depends on their pixel size beyond

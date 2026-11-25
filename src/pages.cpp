@@ -320,6 +320,13 @@ static void IconGlyph(HDC dc, int kind, int x, int y, COLORREF c) {
             FillCircle(dc, x + 15, y + 15, 2, c);
             break;
         }
+        case 14: {  // storage: two stacked drives
+            FillRound(dc, R(x + 2, y + 2, x + 16, y + 9), 2.f * g_scale, c);
+            FillRound(dc, R(x + 2, y + 10, x + 16, y + 17), 2.f * g_scale, c);
+            FillCircle(dc, x + 13, y + 5, 1.5f * g_scale, theme::sidebar);
+            FillCircle(dc, x + 13, y + 13, 1.5f * g_scale, theme::sidebar);
+            break;
+        }
         case 10: {  // settings: three sliders
             for (int i = 0; i < 3; ++i) {
                 int ly = y + 3 + i * 6;
@@ -381,6 +388,7 @@ static void PaintSidebar(HDC dc, int w, int h, AppState& st, std::vector<Hit>& h
         {L"Services", 11, Page::Services, NavServices},
         {L"Task Manager", 12, Page::Tasks, NavTasks},
         {L"System", 3, Page::System, NavSystem},
+        {L"Storage", 14, Page::Storage, NavStorage},
         {L"Settings", 10, Page::Settings, NavSettings},
     };
 
@@ -437,7 +445,7 @@ static void PaintSidebar(HDC dc, int w, int h, AppState& st, std::vector<Hit>& h
 
     int footerY = footerTop;
     HLine(dc, S(20), sw - S(20), footerY, theme::cardEdge);
-    TextAt(dc, L"Version 1.0.0", S(22), footerY + S(16), g_fonts.small, theme::muted);
+    TextAt(dc, L"Version 2.0.0", S(22), footerY + S(16), g_fonts.small, theme::muted);
     TextAt(dc, L"Native Win32 - no telemetry", S(22), footerY + S(38), g_fonts.tiny, theme::faint);
     const wchar_t* modeLabel = st.elevated          ? L"Administrator"
                                : st.promptSuppressed ? L"Standard user - no prompt"
@@ -1038,7 +1046,7 @@ static void PaintBrowsers(HDC dc, int cx, int cw, int h, AppState& st,
         int cyy = listTop + listH / 2 - S(28);
         TextIn(dc, L"No supported browser found", R(cx, cyy, cx + cw, cyy + S(30)), g_fonts.h2,
                theme::text, DT_CENTER | DT_TOP | DT_SINGLELINE);
-        TextIn(dc, L"Chrome, Edge, Brave, Vivaldi, Opera, Opera GX and Firefox are recognised.",
+        TextIn(dc, L"Internet Explorer, Chrome, Edge, Brave, Vivaldi, Opera, Opera GX and Firefox are recognised.",
                R(cx, cyy + S(32), cx + cw, cyy + S(56)), g_fonts.small, theme::muted,
                DT_CENTER | DT_TOP | DT_SINGLELINE);
     }
@@ -2591,6 +2599,158 @@ static void PaintSystem(HDC dc, int cx, int cw, int h, AppState& st, std::vector
     }
 }
 
+// ---------------------------------------------------------------- storage
+// One row per local volume, with the mode Windows' defragmenter will use on
+// it: /D on a mechanical disk and /L (retrim) on a solid-state drive. A volume
+// whose seek-penalty query did not answer is shown but left alone, because
+// running the wrong mode is worse than doing nothing.
+static void PaintStorage(HDC dc, int cx, int cw, int h, AppState& st, std::vector<Hit>& hits) {
+    Header(dc, cx, S(28), cw, L"Storage",
+           L"Defragment mechanical disks and retrim solid-state drives.");
+
+    int by = S(112);
+    int actionsRight = cx + cw;
+    if (st.storageBusy) {
+        // While defrag.exe runs, Cancel is the only action that can do anything; Refresh
+        // and every row button below are drawn disabled and record disabled hits.
+        RECT cancel = R(actionsRight - S(114), by, actionsRight, by + S(38));
+        Button(dc, cancel, L"Cancel", false, st.hoverId == HitStorageCancel, true);
+        RecordHit(hits, cancel, HitStorageCancel);
+        actionsRight = cancel.left - S(10);
+    }
+    RECT refresh = R(actionsRight - S(114), by, actionsRight, by + S(38));
+    Button(dc, refresh, L"Refresh", false, st.hoverId == HitStorageRefresh, !st.storageBusy);
+    RecordHit(hits, refresh, HitStorageRefresh, !st.storageBusy);
+
+    std::vector<int> rows;
+    for (int i = 0; i < (int)st.storage.size(); ++i) {
+        const StorageDevice& d = st.storage[(size_t)i];
+        if (!d.total) continue;
+        if (d.typeName == L"Network" || d.typeName == L"Optical") continue;
+        rows.push_back(i);
+    }
+
+    int pad = S(22);
+    int cardTop = by + S(58);
+    int cardBottom = h - S(70);
+    int rowH = S(78);
+    int listTop = cardTop + S(44);
+    int total = (int)rows.size();
+    int maxRows = std::max(1, (cardBottom - S(8) - listTop) / rowH);
+    bool scrollable = total > maxRows;
+    int cardH = S(44) + std::max(std::min(total, maxRows), 1) * rowH + S(8);
+    RECT card = R(cx, cardTop, cx + cw, std::min(cardTop + cardH, cardBottom));
+    Card(dc, card, false);
+    TextAt(dc, L"Volumes", card.left + pad, card.top + S(14), g_fonts.h3, theme::text);
+
+    wchar_t count[128];
+    swprintf(count, 128, L"%d local volume%ls", total, total == 1 ? L"" : L"s");
+    TextIn(dc, count,
+           R(card.left + S(240), card.top + S(16), card.right - pad, card.top + S(36)),
+           g_fonts.tiny, theme::faint, DT_RIGHT | DT_TOP | DT_SINGLELINE);
+
+    if (rows.empty()) {
+        TextAt(dc, st.storageBusy ? L"Refreshing volumes..."
+                                  : L"No local volume is available to optimize.",
+               card.left + pad, card.top + S(44), g_fonts.small, theme::muted);
+    }
+
+    const int viewH = std::max(0, (int)card.bottom - S(6) - listTop);
+    const int maxScroll = scrollable ? std::max(0, total * rowH - viewH) : 0;
+    st.scrollStorage = std::clamp(st.scrollStorage, 0, maxScroll);
+    st.storageScrollMax = maxScroll;
+    st.storagePageStep = std::max(rowH, maxRows * rowH);
+
+    // The thumb drags the list by pixels, so the rows are laid out from the exact offset
+    // (not a row index) and their hit rects are recorded from the same dy below.
+    const int first = st.scrollStorage / rowH;
+    const int remainder = st.scrollStorage % rowH;
+    const int shown = scrollable ? (viewH + remainder + rowH - 1) / rowH : total;
+    const RECT viewport = R(card.left, listTop, card.right, (int)card.bottom - S(6));
+    int saved = SaveDC(dc);
+    IntersectClipRect(dc, viewport.left, viewport.top, viewport.right, viewport.bottom);
+    for (int n = first; n < std::min(total, first + shown); ++n) {
+        const StorageDevice& d = st.storage[(size_t)rows[(size_t)n]];
+        int dy = listTop - remainder + (n - first) * rowH;
+        std::wstring title = d.root;
+        if (!d.label.empty()) title += L"  " + d.label;
+        TextAt(dc, Ellipsize(dc, title, g_fonts.h3, cw - S(470)), card.left + pad, dy + S(4),
+               g_fonts.h3, d.accessible ? theme::text : theme::muted);
+
+        std::wstring capacity =
+            d.total ? FormatBytes(d.freeBytes) + L" free of " + FormatBytes(d.total)
+                    : std::wstring(L"capacity unavailable");
+        TextIn(dc, capacity,
+               R(card.left + S(300), dy + S(6), card.right - pad - S(124), dy + S(24)),
+               g_fonts.tiny, theme::muted, DT_RIGHT | DT_TOP | DT_SINGLELINE);
+
+        std::wstring media = !d.mediaKnown ? std::wstring(L"media type unknown")
+                            : d.ssd ? std::wstring(L"solid-state (TRIM)")
+                                    : std::wstring(L"mechanical (defragment)");
+        std::wstring detail = media;
+        if (!d.typeName.empty()) detail += L"  -  " + d.typeName;
+        if (!d.fileSystem.empty()) detail += L"  -  " + d.fileSystem;
+        if (!d.bus.empty()) detail += L"  -  " + d.bus;
+        if (!d.model.empty()) detail += L"  -  " + d.model;
+        TextIn(dc, Ellipsize(dc, detail, g_fonts.tiny, cw - S(470)),
+               R(card.left + pad, dy + S(28), card.right - pad - S(124), dy + S(46)),
+               g_fonts.tiny, d.mediaKnown ? theme::muted : theme::faint,
+               DT_LEFT | DT_TOP | DT_SINGLELINE);
+
+        // The id is the drive letter, not the row's place in st.storage: a refresh can
+        // reorder the volumes, and a press must never land on a different disk.
+        int slot = d.root.empty() ? -1 : (int)(std::towupper(d.root[0]) - L'A');
+        if (slot < 0 || slot >= 26) continue;
+        RECT btn = R(card.right - pad - S(112), dy + S(22), card.right - pad, dy + S(52));
+        const std::wstring refusal = StorageOptimizeRefusal(d);
+        bool enabled = refusal.empty() && !st.storageBusy;
+        std::wstring action = !refusal.empty() ? L"Unavailable"
+                              : d.ssd          ? L"TRIM"
+                                               : L"Defragment";
+        Button(dc, btn, action, false, st.hoverId == HitStorageRowBase + slot, enabled);
+        // A row half-scrolled into the viewport must not answer a click in the hidden half.
+        RECT visibleBtn = {};
+        if (IntersectRect(&visibleBtn, &btn, &viewport))
+            RecordHit(hits, visibleBtn, HitStorageRowBase + slot, enabled);
+
+        if (d.total) {
+            double pct = 100.0 * (double)(d.total - d.freeBytes) / (double)d.total;
+            RECT bar = R(card.left + pad, dy + rowH - S(10), card.right - pad, dy + rowH - S(6));
+            FillRound(dc, bar, 2.0f * g_scale, theme::active);
+            Progress(dc, bar, pct, pct > 90 ? theme::danger : theme::accent);
+        }
+    }
+    RestoreDC(dc, saved);
+
+    if (maxScroll > 0) {
+        const int trackH = viewH;
+        const int thumbH =
+            std::max(S(30), (int)((long long)trackH * viewH / std::max(1, total * rowH)));
+        const int travel = std::max(0, trackH - thumbH);
+        const int thumbY = listTop + travel * st.scrollStorage / maxScroll;
+        st.storageTrack = R(card.right - S(10), listTop, card.right - S(4), listTop + trackH);
+        st.storageThumb = R(st.storageTrack.left, thumbY, st.storageTrack.right, thumbY + thumbH);
+        FillRound(dc, st.storageTrack, 3.0f * g_scale, theme::active);
+        FillRound(dc, st.storageThumb, 3.0f * g_scale, theme::accent);
+    } else {
+        st.storageTrack = {};
+        st.storageThumb = {};
+    }
+
+    if (st.storageBusy) {
+        RECT bar = R(cx, h - S(58), cx + cw, h - S(52));
+        FillRound(dc, bar, S(3), theme::active);
+        if (st.storagePercent >= 0)
+            Progress(dc, bar, st.storagePercent, theme::accent);
+    }
+    if (!st.storageMessage.empty())
+        TextAt(dc, st.storageMessage, cx, h - S(44), g_fonts.small,
+               st.storageMessageIsError ? theme::danger : theme::accent);
+    else
+        TextAt(dc, L"Both modes use Windows' own defragmenter; no other file is written.", cx,
+               h - S(44), g_fonts.tiny, theme::faint);
+}
+
 // ---------------------------------------------------------------- services
 static bool RuleForExe(const std::vector<TaskRule>& rules, const std::wstring& exe,
                        size_t* index = nullptr) {
@@ -3207,7 +3367,7 @@ static void PaintTasks(HDC dc, int cx, int cw, int h, AppState& st, std::vector<
 const wchar_t* const kLicenseText =
     L"BSD 3-Clause License\n"
     L"\n"
-    L"Copyright (c) 2026, Charles McDonald\n"
+    L"Copyright (c) 2026-2027, Charles McDonald\n"
     L"All rights reserved.\n"
     L"\n"
     L"Redistribution and use in source and binary forms, with or without modification, are "
@@ -3377,7 +3537,7 @@ static void PaintSettings(HDC dc, int cx, int cw, int h, AppState& st,
 
     RECT card = R(cx, y, cx + cw, y + cardH);
     Card(dc, card, false);
-    TextIn(dc, L"Copyright \u00a9 2026 Charles McDonald.",
+    TextIn(dc, L"Copyright \u00a9 2026-2027 Charles McDonald.",
            R(card.left + S(24), card.top + S(14), card.right - S(24), card.top + S(36)),
            g_fonts.h3, theme::text, DT_LEFT | DT_TOP | DT_SINGLELINE);
     TextIn(dc,
@@ -3517,6 +3677,9 @@ void PaintApp(HDC dc, int width, int height, AppState& st, std::vector<Hit>& hit
             break;
         case Page::System:
             PaintSystem(dc, cx, cw, height, st, hits);
+            break;
+        case Page::Storage:
+            PaintStorage(dc, cx, cw, height, st, hits);
             break;
         case Page::Services:
             PaintServices(dc, cx, cw, height, st, hits);

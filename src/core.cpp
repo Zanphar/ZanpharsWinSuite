@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cwctype>
+#include <mutex>
 #include <thread>
 
 // ------------------------------------------------------------------ helpers
@@ -421,7 +422,7 @@ static const wchar_t* BusTypeName(int type) {
 // Asks the volume for its underlying device descriptor. Quietly does nothing when
 // Windows refuses (non-elevated on some systems), in which case the row simply
 // shows less detail instead of failing.
-static void ReadVolumeTech(const std::wstring& root, std::wstring& bus, std::wstring& model) {
+static void ReadVolumeTech(const std::wstring& root, StorageDevice& device) {
     if (root.size() < 2) return;
     std::wstring path = L"\\\\.\\" + root.substr(0, 2);
     HANDLE h = CreateFileW(path.c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
@@ -440,7 +441,6 @@ static void ReadVolumeTech(const std::wstring& root, std::wstring& bus, std::wst
                         sizeof(buffer), &returned, nullptr) &&
         returned >= sizeof(STORAGE_DEVICE_DESCRIPTOR)) {
         const STORAGE_DEVICE_DESCRIPTOR* desc = (const STORAGE_DEVICE_DESCRIPTOR*)buffer;
-        bus = BusTypeName((int)desc->BusType);
         auto textAt = [&](DWORD offset) -> std::wstring {
             if (!offset || offset >= returned) return std::wstring();
             const char* text = (const char*)buffer + offset;
@@ -453,8 +453,23 @@ static void ReadVolumeTech(const std::wstring& root, std::wstring& bus, std::wst
         };
         std::wstring vendor = textAt(desc->VendorIdOffset);
         std::wstring product = textAt(desc->ProductIdOffset);
-        model = vendor;
-        if (!product.empty()) model += (model.empty() ? L"" : L" ") + product;
+        device.bus = BusTypeName((int)desc->BusType);
+        device.model = vendor;
+        if (!product.empty()) device.model += (device.model.empty() ? L"" : L" ") + product;
+    }
+
+    // The seek-penalty answer is what tells a mechanical disk from an SSD, and
+    // therefore which of defrag.exe's modes is the right one.
+    STORAGE_PROPERTY_QUERY seek = {};
+    seek.PropertyId = StorageDeviceSeekPenaltyProperty;
+    seek.QueryType = PropertyStandardQuery;
+    DEVICE_SEEK_PENALTY_DESCRIPTOR penalty = {};
+    DWORD seekGot = 0;
+    if (DeviceIoControl(h, IOCTL_STORAGE_QUERY_PROPERTY, &seek, sizeof(seek), &penalty,
+                        sizeof(penalty), &seekGot, nullptr) &&
+        seekGot >= sizeof(penalty)) {
+        device.mediaKnown = true;
+        device.ssd = penalty.IncursSeekPenalty == FALSE;
     }
     CloseHandle(h);
 }
@@ -491,10 +506,173 @@ std::vector<StorageDevice> CollectStorageDevices() {
             }
         }
 
-        ReadVolumeTech(root, device.bus, device.model);
+        ReadVolumeTech(root, device);
         out.push_back(std::move(device));
     }
     return out;
+}
+
+// Only one defrag.exe runs at a time: the Storage page disables every action while
+// it is busy. The handle is kept here so Cancel can reach the exact child process,
+// and the mutex closes the gap between CreateProcess and the handle being stored.
+static std::mutex g_defragMutex;
+static HANDLE g_defragProcess = nullptr;
+static std::atomic<bool> g_defragCancel{false};
+
+void ResetVolumeOptimize() { g_defragCancel.store(false); }
+
+void CancelVolumeOptimize() {
+    g_defragCancel.store(true);
+    std::lock_guard<std::mutex> lock(g_defragMutex);
+    if (g_defragProcess) TerminateProcess(g_defragProcess, 1);
+}
+
+static int LastPercent(const std::wstring& text) {
+    size_t percent = text.find_last_of(L'%');
+    if (percent == std::wstring::npos) return -1;
+    size_t start = percent;
+    while (start > 0 && text[start - 1] >= L'0' && text[start - 1] <= L'9') --start;
+    if (start == percent) return -1;
+    int value = 0;
+    for (size_t i = start; i < percent; ++i) value = value * 10 + (text[i] - L'0');
+    return value >= 0 && value <= 100 ? value : -1;
+}
+
+static bool RunDefrag(const std::wstring& executable, const std::wstring& arguments,
+                      std::wstring& output, DWORD& exitCode,
+                      const std::function<void(int)>& progress) {
+    SECURITY_ATTRIBUTES inherit = {};
+    inherit.nLength = sizeof(inherit);
+    inherit.bInheritHandle = TRUE;
+    HANDLE readPipe = nullptr, writePipe = nullptr;
+    if (!CreatePipe(&readPipe, &writePipe, &inherit, 0)) return false;
+    SetHandleInformation(readPipe, HANDLE_FLAG_INHERIT, 0);
+
+    STARTUPINFOW startup = {};
+    startup.cb = sizeof(startup);
+    startup.dwFlags = STARTF_USESTDHANDLES;
+    startup.hStdOutput = writePipe;
+    startup.hStdError = writePipe;
+    PROCESS_INFORMATION info = {};
+    // Resolve the Windows copy explicitly. CreateProcess's bare-name search checks the
+    // application folder before PATH, so a stray defrag.exe beside the suite must never
+    // be able to run with the elevated token.
+    std::wstring program = executable;
+    if (program == L"defrag.exe") {
+        wchar_t systemDir[MAX_PATH] = {};
+        if (GetSystemDirectoryW(systemDir, MAX_PATH))
+            program = std::wstring(systemDir) + L"\\defrag.exe";
+    }
+    std::wstring command = L"\"" + program + L"\" " + arguments;
+    const BOOL started = CreateProcessW(nullptr, command.data(), nullptr, nullptr, TRUE,
+                                        CREATE_NO_WINDOW, nullptr, nullptr, &startup, &info);
+    CloseHandle(writePipe);
+    if (!started) {
+        output = WinErrorText(GetLastError());
+        CloseHandle(readPipe);
+        return false;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(g_defragMutex);
+        // A cancel that arrived while CreateProcess was starting must not be lost.
+        if (g_defragCancel.load())
+            TerminateProcess(info.hProcess, 1);
+        else
+            g_defragProcess = info.hProcess;
+    }
+
+    std::string bytes;
+    char buffer[4096];
+    DWORD got = 0;
+    int reported = -1;
+    while (ReadFile(readPipe, buffer, sizeof(buffer), &got, nullptr) && got > 0) {
+        bytes.append(buffer, got);
+        // Keep a little history so a percentage split across two pipe reads is still
+        // read as one number rather than as the tail of the old one.
+        const size_t tailFrom = bytes.size() > 4096 ? bytes.size() - 4096 : 0;
+        const int length = MultiByteToWideChar(CP_OEMCP, 0, bytes.data() + tailFrom,
+                                               (int)(bytes.size() - tailFrom), nullptr, 0);
+        if (length > 0 && progress) {
+            std::wstring chunk((size_t)length, L'\0');
+            MultiByteToWideChar(CP_OEMCP, 0, bytes.data() + tailFrom,
+                                (int)(bytes.size() - tailFrom), chunk.data(), length);
+            const int percent = LastPercent(chunk);
+            if (percent >= 0 && percent != reported) {
+                reported = percent;
+                progress(percent);
+            }
+        }
+        if (g_defragCancel.load()) break;
+    }
+    CloseHandle(readPipe);
+    WaitForSingleObject(info.hProcess, INFINITE);
+    GetExitCodeProcess(info.hProcess, &exitCode);
+    {
+        std::lock_guard<std::mutex> lock(g_defragMutex);
+        if (g_defragProcess == info.hProcess) g_defragProcess = nullptr;
+    }
+    CloseHandle(info.hThread);
+    CloseHandle(info.hProcess);
+
+    const int length = MultiByteToWideChar(CP_OEMCP, 0, bytes.data(), (int)bytes.size(), nullptr, 0);
+    if (length > 0) {
+        output.resize((size_t)length);
+        MultiByteToWideChar(CP_OEMCP, 0, bytes.data(), (int)bytes.size(), output.data(), length);
+    }
+    return true;
+}
+
+static std::wstring LastOutputLine(const std::wstring& output) {
+    size_t end = output.find_last_not_of(L"\r\n \t");
+    if (end == std::wstring::npos) return std::wstring();
+    size_t start = output.find_last_of(L"\r\n", end);
+    start = start == std::wstring::npos ? 0 : start + 1;
+    std::wstring line = output.substr(start, end - start + 1);
+    while (!line.empty() && (line.front() == L' ' || line.front() == L'\t')) line.erase(0, 1);
+    return line;
+}
+
+std::wstring StorageOptimizeRefusal(const StorageDevice& device) {
+    if (device.typeName == L"Network" || device.typeName == L"Optical")
+        return device.root + L" is not a local disk, so it was left alone.";
+    if (!device.mediaKnown)
+        return device.root + L" did not report whether it is solid-state or mechanical, so "
+               L"it was left alone.";
+    if (!device.total) return device.root + L" has no mounted media to optimize.";
+    return std::wstring();
+}
+
+OptimizeOutcome OptimizeVolume(const StorageDevice& device,
+                              const std::function<void(int)>& progress,
+                              const std::wstring& executable) {
+    OptimizeOutcome result;
+    const std::wstring refusal = StorageOptimizeRefusal(device);
+    if (!refusal.empty()) {
+        result.message = refusal;
+        return result;
+    }
+    const std::wstring volume = device.root.substr(0, 2);
+    const std::wstring arguments = L"\"" + volume + L"\" " + (device.ssd ? L"/L" : L"/D /H");
+    DWORD exitCode = 0;
+    std::wstring output;
+    if (!RunDefrag(executable, arguments, output, exitCode, progress)) {
+        result.message = L"defrag.exe could not start: " + output;
+        return result;
+    }
+    if (g_defragCancel.load()) {
+        result.cancelled = true;
+        result.message = volume + L" optimization was cancelled.";
+        return result;
+    }
+    if (exitCode != 0) {
+        const std::wstring line = LastOutputLine(output);
+        result.message = volume + L" was not optimized" + (line.empty() ? L"." : L": " + line);
+        return result;
+    }
+    result.ok = true;
+    result.message = volume + (device.ssd ? L" was retrimmed." : L" was defragmented.");
+    return result;
 }
 
 // ----------------------------------------------------------------- memory

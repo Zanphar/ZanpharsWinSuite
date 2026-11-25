@@ -1,3 +1,13 @@
 build/
 shots/*.bmp
 zanphars-winsuite-selftest.log
+
+# Build intermediates and per-program build trees. build_all.bat stages
+# everything outside the tree, so none of this belongs in a commit.
+*.o
+*.obj
+*.res
+SmartRAM/build/
+SmartRAM/build-mingw/
+SmartRAM/dist/
+BrowserCleaner/BrowserCleaner.exe

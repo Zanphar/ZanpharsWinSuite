@@ -1,3 +1,4 @@
+#pragma code_page(65001)  // the © in LegalCopyright is UTF-8
 // app.rc — icon + version info.
 #include <winver.h>
 
@@ -19,7 +20,7 @@ VS_VERSION_INFO VERSIONINFO
             VALUE "FileDescription", "Monitor and release memory"
             VALUE "FileVersion", "1.0.0.0"
             VALUE "InternalName", "SmartRAM"
-            VALUE "LegalCopyright", "Copyright (C) 2026 Charles McDonald. BSD 3-Clause License."
+            VALUE "LegalCopyright", "Copyright © 2026-2027 Charles McDonald. BSD 3-Clause License."
             VALUE "OriginalFilename", "SmartRAM.exe"
             VALUE "ProductName", "Smart RAM"
             VALUE "ProductVersion", "1.0"

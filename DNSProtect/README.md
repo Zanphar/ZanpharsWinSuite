@@ -86,4 +86,4 @@ counted in the status card, and written to
 
 ## License
 
-BSD 3-Clause, copyright 2026 Charles McDonald — see `LICENSE.md`.
+BSD 3-Clause, copyright 2026-2027 Charles McDonald — see `LICENSE.md`.

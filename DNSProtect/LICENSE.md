@@ -1,6 +1,6 @@
 BSD 3-Clause License
 
-Copyright (c) 2026, Charles McDonald
+Copyright (c) 2026-2027, Charles McDonald
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

@@ -26,7 +26,7 @@
 #endif
 
 static const wchar_t* kAppName = L"Zanphar's WinSuite";
-static const wchar_t* kVersion = L"1.0.0";
+static const wchar_t* kVersion = L"2.0.0";
 
 #define WM_APP_SCAN_DONE (WM_APP + 1)
 #define WM_APP_CLEAN_DONE (WM_APP + 2)
@@ -41,6 +41,7 @@ static const wchar_t* kVersion = L"1.0.0";
 #define WM_APP_SCAN_PROGRESS (WM_APP + 11)
 #define WM_APP_TRAY (WM_APP + 12)
 #define WM_APP_LATENCY_DONE (WM_APP + 13)
+#define WM_APP_STORAGE_DONE (WM_APP + 14)
 #define kQuietScanMinSeconds 5   // fastest cadence for the Cleanup page's live totals
 #define kQuietScanMaxSeconds 60  // slowest, for folders that are expensive to measure
 
@@ -74,6 +75,7 @@ static std::vector<CleanGroup> g_scanResult;
 static std::vector<CleanGroup> g_scanLive;  // the scan in progress, row by row
 static CleanResult g_cleanResult;
 static std::vector<LargeFile> g_largeScanResult;
+static OptimizeOutcome g_storageOutcome;
 static LargeDeleteResult g_largeDeleteResult;
 static std::vector<CleanGroup> g_quietScanResult;
 static std::vector<CleanGroup> g_cleanRefreshResult;
@@ -85,6 +87,7 @@ static std::atomic<unsigned> g_quietInterval{kQuietScanMinSeconds};  // grows wi
 static unsigned g_quietTick = 0;
 static unsigned g_memTick = 0;
 static unsigned g_storageTick = 0;
+static std::atomic<int> g_storagePercent{-1};
 static unsigned g_dnsTick = 0;
 static unsigned g_svcTick = 0;
 static unsigned g_taskTick = 0;
@@ -876,7 +879,8 @@ static void NavigateTo(Page page) {
     if (page != Page::Cleanup) g_app->scanCancelled = false;
     if (page == Page::Cleanup) EnsureCleanupMeasured();
     if (page == Page::Startup) LoadStartupPage(*g_app);
-    if (page == Page::Dashboard || page == Page::System) LoadSystemPage(*g_app);
+    if (page == Page::Dashboard || page == Page::System || page == Page::Storage)
+        LoadSystemPage(*g_app);
     if (page == Page::Memory) LoadMemoryPage(*g_app);
     if (page == Page::Deactivate) LoadDeactivatePage(*g_app);
     if (page == Page::Browsers) {
@@ -933,6 +937,131 @@ static bool ConfirmAdminRights(const std::wstring& what, const wchar_t* title) {
 
 static bool ConfirmServiceRights(const std::wstring& what) {
     return ConfirmAdminRights(what, L"Deactivate");
+}
+
+static std::wstring StorageMediaText(const StorageDevice& device) {
+    std::wstring media = !device.mediaKnown ? L"media type unknown"
+                          : device.ssd      ? L"solid-state drive"
+                                           : L"mechanical hard disk";
+    if (!device.typeName.empty()) media += L" / " + device.typeName;
+    if (!device.bus.empty()) media += L" / " + device.bus;
+    if (!device.model.empty()) media += L" / " + device.model;
+    return media;
+}
+
+static std::wstring StorageVolumeText(const StorageDevice& device) {
+    std::wstring name = device.root;
+    if (!device.label.empty()) name += L" (" + device.label + L")";
+    return name;
+}
+
+static std::wstring StorageModeText(const StorageDevice& device) {
+    return device.ssd ? L"Retrim (TRIM, /L)" : L"Defragment (/D /H)";
+}
+
+static std::wstring StorageElapsedText(ULONGLONG started) {
+    const ULONGLONG seconds = started ? (GetTickCount64() - started) / 1000 : 0;
+    wchar_t buf[32];
+    swprintf(buf, 32, L"%llu:%02llu", (unsigned long long)(seconds / 60),
+             (unsigned long long)(seconds % 60));
+    return buf;
+}
+
+static void UpdateStorageProgress() {
+    if (!g_app || !g_app->storageBusy) return;
+    std::wstring text = g_app->storageAction + L" - " + StorageElapsedText(g_app->storageStarted) +
+                        L" elapsed";
+    const int percent = g_storagePercent.load();
+    g_app->storagePercent = percent;
+    if (percent >= 0) text += L" - " + std::to_wstring(percent) + L"%";
+    g_app->storageMessage = text;
+    g_app->storageMessageIsError = false;
+}
+
+static void CancelStorageOptimize() {
+    if (!g_app || !g_app->storageBusy) return;
+    CancelVolumeOptimize();
+    g_app->storageMessage = L"Cancelling " + g_app->storageAction + L"...";
+    g_app->storageMessageIsError = false;
+    InvalidateRect(g_hwnd, nullptr, FALSE);
+}
+
+// defrag.exe needs an elevated token for the volume it opens, so the Storage page
+// asks once and restarts the suite the same way the service actions do.
+static void StartStorageOptimize(int slot) {
+    if (!g_app || g_app->storageBusy) return;
+    if (slot < 0 || slot >= 26) return;
+    const wchar_t letter = (wchar_t)(L'A' + slot);
+    auto found = std::find_if(g_app->storage.begin(), g_app->storage.end(),
+                              [letter](const StorageDevice& d) {
+                                  return !d.root.empty() &&
+                                         std::towupper(d.root[0]) == letter;
+                              });
+    if (found == g_app->storage.end()) return;
+    const StorageDevice device = *found;
+    if (g_workerRunning.load()) {
+        g_app->storageMessage = L"Another job is still running - try again in a moment.";
+        g_app->storageMessageIsError = true;
+        InvalidateRect(g_hwnd, nullptr, FALSE);
+        return;
+    }
+    const std::wstring refusal = StorageOptimizeRefusal(device);
+    if (!refusal.empty()) {
+        g_app->storageMessage = refusal;
+        g_app->storageMessageIsError = true;
+        InvalidateRect(g_hwnd, nullptr, FALSE);
+        return;
+    }
+
+    const std::wstring volume = StorageVolumeText(device);
+    const std::wstring mode = StorageModeText(device);
+    std::wstring prompt =
+        L"Optimize " + volume + L"?\n\n" + L"Media: " + StorageMediaText(device) + L"\n" +
+        L"Mode: " + mode + L"\n\n" +
+        (device.ssd ? L"TRIM tells the drive which blocks are no longer in use; it does not "
+                      L"delete files.\n\n"
+                    : L"Defragmentation can take minutes on a large or busy disk.\n\n") +
+        L"All Storage actions will be disabled until it finishes. You can cancel from "
+        L"the Storage page.\n\nStart now?";
+    if (MessageBoxW(g_hwnd, prompt.c_str(), L"Confirm storage optimization",
+                    MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) != IDYES) {
+        g_app->storageMessage = L"Optimization cancelled - nothing was changed.";
+        g_app->storageMessageIsError = false;
+        InvalidateRect(g_hwnd, nullptr, FALSE);
+        return;
+    }
+    if (!ConfirmAdminRights(L"Optimizing " + volume + L" (" + mode + L")", L"Storage")) {
+        g_app->storageMessage =
+            L"Nothing was changed: optimizing a volume needs administrator rights.";
+        g_app->storageMessageIsError = true;
+        InvalidateRect(g_hwnd, nullptr, FALSE);
+        return;
+    }
+    if (g_workerRunning.load() || g_app->storageBusy) return;
+
+    ResetVolumeOptimize();
+    g_storagePercent.store(-1);
+    g_app->storagePercent = -1;
+    g_workerRunning.store(true);
+    g_app->storageBusy = true;
+    g_app->storageStarted = GetTickCount64();
+    g_app->storageAction =
+        (device.ssd ? L"Trimming " : L"Defragmenting ") + device.root;
+    g_app->storageMessage = g_app->storageAction + L"...";
+    g_app->storageMessageIsError = false;
+    InvalidateRect(g_hwnd, nullptr, FALSE);
+
+    std::thread([device]() {
+        OptimizeOutcome outcome = OptimizeVolume(device, [](int percent) {
+            g_storagePercent.store(percent);
+        });
+        {
+            std::lock_guard<std::mutex> lock(g_workerMutex);
+            g_storageOutcome = outcome;
+        }
+        g_workerRunning.store(false);
+        PostMessageW(g_hwnd, WM_APP_STORAGE_DONE, 0, 0);
+    }).detach();
 }
 
 // ------------------------------------------------------------ modal form
@@ -1951,8 +2080,12 @@ static void HandleHit(int id, bool enabled) {
         return;
     }
 
-    // The game-service rows sit above the game tweaks, and both above the network rows:
-    // every test here is a lower bound, so the highest range has to be matched first.
+    // The Storage rows are the highest range, then the game-service rows, then the game
+    // tweaks: every test here is a lower bound, so the highest range has to be matched first.
+    if (id >= HitStorageRowBase && id < HitStorageRowBase + 26) {
+        StartStorageOptimize(id - HitStorageRowBase);
+        return;
+    }
     if (id >= HitGameServiceBase) {
         ToggleGameService(id - HitGameServiceBase);
         return;
@@ -2372,6 +2505,20 @@ static void HandleHit(int id, bool enabled) {
             break;
         case NavSystem:
             NavigateTo(Page::System);
+            break;
+        case NavStorage:
+            NavigateTo(Page::Storage);
+            break;
+        case HitStorageRefresh:
+            if (!g_app->storageBusy) {
+                LoadSystemPage(*g_app);
+                g_app->storageMessage.clear();
+                g_app->storageMessageIsError = false;
+                InvalidateRect(g_hwnd, nullptr, FALSE);
+            }
+            break;
+        case HitStorageCancel:
+            CancelStorageOptimize();
             break;
         case NavSettings:
             NavigateTo(Page::Settings);
@@ -2904,8 +3051,36 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             return 0;
         }
 
+        case WM_LBUTTONUP:
+            if (g_app->storageDragging) {
+                g_app->storageDragging = false;
+                ReleaseCapture();
+                // Rebuild the row hit rects at the final offset before the next press.
+                UpdateWindow(hwnd);
+                InvalidateRect(hwnd, nullptr, FALSE);
+            }
+            return 0;
+
+        case WM_CAPTURECHANGED:
+            if (g_app->storageDragging) {
+                g_app->storageDragging = false;
+                UpdateWindow(hwnd);
+            }
+            return 0;
+
         case WM_MOUSEMOVE: {
             POINT pt = {GET_X_LPARAM(lp), GET_Y_LPARAM(lp)};
+            if (g_app->storageDragging) {
+                RECT track = g_app->storageTrack;
+                const int thumbH = (int)(g_app->storageThumb.bottom - g_app->storageThumb.top);
+                const int travel = std::max(1, (int)(track.bottom - track.top) - thumbH);
+                const int offset = std::clamp((int)pt.y - g_app->storageDragOffset -
+                                                  (int)track.top, 0, travel);
+                g_app->scrollStorage = MulDiv(offset, g_app->storageScrollMax, travel);
+                g_app->hoverId = HitNone;
+                InvalidateRect(hwnd, nullptr, FALSE);
+                return 0;
+            }
             bool enabled = false;
             int id = HitTest(g_hits, pt, &enabled);
             if (id != g_app->hoverId) {
@@ -2934,6 +3109,24 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 
         case WM_LBUTTONDOWN: {
             POINT pt = {GET_X_LPARAM(lp), GET_Y_LPARAM(lp)};
+            if (g_app->page == Page::Storage && g_app->storageScrollMax > 0) {
+                if (PtInRect(&g_app->storageThumb, pt)) {
+                    g_app->storageDragging = true;
+                    g_app->storageDragOffset = (int)pt.y - (int)g_app->storageThumb.top;
+                    SetCapture(hwnd);
+                    InvalidateRect(hwnd, nullptr, FALSE);
+                    return 0;
+                }
+                // Clicking the track pages the list; the thumb keeps its own drag.
+                if (PtInRect(&g_app->storageTrack, pt)) {
+                    const int direction = pt.y < g_app->storageThumb.top ? -1 : 1;
+                    g_app->scrollStorage = std::clamp(
+                        g_app->scrollStorage + direction * g_app->storagePageStep, 0,
+                        g_app->storageScrollMax);
+                    InvalidateRect(hwnd, nullptr, FALSE);
+                    return 0;
+                }
+            }
             bool enabled = false;
             int id = HitTest(g_hits, pt, &enabled);
             HandleHit(id, enabled);
@@ -2942,7 +3135,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 
         case WM_MOUSEWHEEL: {
             int delta = GET_WHEEL_DELTA_WPARAM(wp);
-            int step = (delta / WHEEL_DELTA) * 64;
+            const int notches = delta / WHEEL_DELTA;
+            int step = notches * 64;
             // The wheel goes to whatever the pointer is over: the sidebar scrolls its own
             // entries, a page scrolls its list. That is what keeps every entry reachable
             // when the navigation no longer fits on a short window.
@@ -2976,6 +3170,11 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                 g_app->scrollDashboard = std::max(0, g_app->scrollDashboard - step);
             } else if (g_app->page == Page::System) {
                 g_app->scrollSystem = std::max(0, g_app->scrollSystem - step);
+            } else if (g_app->page == Page::Storage) {
+                // Storage snaps to whole 78 px rows at 100% DPI, so a fixed 64 px notch
+                // would round away at higher scale. Move by the scaled row height instead.
+                g_app->scrollStorage =
+                    std::max(0, g_app->scrollStorage - notches * (int)Scaled(78));
             } else if (g_app->page == Page::Settings) {
                 g_app->scrollSettings = std::max(0, g_app->scrollSettings - step);
             }
@@ -2986,6 +3185,11 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         case WM_TIMER:
             if (wp == 1) {
                 UpdateDynamicValues();
+                if (g_app->storageBusy) {
+                    UpdateStorageProgress();
+                    if (g_app->page == Page::Storage)
+                        InvalidateRect(hwnd, nullptr, FALSE);
+                }
                 if (g_app->page == Page::Dashboard || g_app->page == Page::System)
                     InvalidateRect(hwnd, nullptr, FALSE);
                 // The Cleanup page measures itself when it opens and re-measures in the
@@ -3315,6 +3519,24 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             FinishCleanRefresh();
             return 0;
 
+        case WM_APP_STORAGE_DONE: {
+            OptimizeOutcome outcome;
+            {
+                std::lock_guard<std::mutex> lock(g_workerMutex);
+                outcome = g_storageOutcome;
+            }
+            g_app->storageBusy = false;
+            g_app->storageStarted = 0;
+            g_app->storageAction.clear();
+            g_app->storagePercent = -1;
+            g_storagePercent.store(-1);
+            g_app->storageMessage = outcome.message;
+            g_app->storageMessageIsError = !outcome.ok && !outcome.cancelled;
+            LoadSystemPage(*g_app);
+            InvalidateRect(hwnd, nullptr, FALSE);
+            return 0;
+        }
+
         case WM_APP_LARGE_SCAN_DONE: {
             {
                 std::lock_guard<std::mutex> lock(g_workerMutex);
@@ -3388,6 +3610,9 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         }
 
         case WM_DESTROY:
+            // Never leave defrag.exe running with no window to report to. Closing to
+            // the tray only hides the window, so this is the real exit path.
+            if (g_app && g_app->storageBusy) CancelVolumeOptimize();
             RemoveTrayIcon();
             KillTimer(hwnd, 1);
             g_dnsWatchdogRunning.store(false);
@@ -3496,13 +3721,16 @@ static bool CreateMainWindow(HINSTANCE inst) {
 // ------------------------------------------------------------------ console
 static HANDLE g_stdout = INVALID_HANDLE_VALUE;
 static FILE* g_logFile = nullptr;
+static std::wstring g_logPath;  // --selftest-log, for an elevated run with no console
 
 static void InitOutput() {
     if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
         // Already attached or no console; keep whatever handles we inherited.
     }
     g_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (g_stdout == INVALID_HANDLE_VALUE || g_stdout == nullptr) {
+    if (!g_logPath.empty()) {
+        if (!g_logFile) g_logFile = _wfopen(g_logPath.c_str(), L"w, ccs=UTF-8");
+    } else if (g_stdout == INVALID_HANDLE_VALUE || g_stdout == nullptr) {
         g_logFile = _wfopen(L"zanphars-winsuite-selftest.log", L"w, ccs=UTF-8");
     }
 }
@@ -4155,6 +4383,149 @@ static int RunServiceTest() {
     return ok && gameOk ? 0 : 1;
 }
 
+// Draws the Storage page into an off-screen bitmap at a chosen scale and returns
+// the hit rects, so the DPI/media matrix is checked against the real paint code
+// rather than a second copy of the arithmetic.
+static bool RenderStorageHits(AppState& st, float scale, std::vector<Hit>& hits) {
+    g_scale = scale;
+    g_fonts.Create(scale);
+    const int w = (int)std::lround(1024.0 * scale);
+    const int h = (int)std::lround(768.0 * scale);
+    HDC screen = GetDC(nullptr);
+    HDC mem = CreateCompatibleDC(screen);
+    HBITMAP dib = CreateCompatibleBitmap(screen, w, h);
+    if (!dib) {
+        DeleteDC(mem);
+        ReleaseDC(nullptr, screen);
+        return false;
+    }
+    HGDIOBJ old = SelectObject(mem, dib);
+    st.page = Page::Storage;
+    PaintApp(mem, w, h, st, hits);
+    SelectObject(mem, old);
+    DeleteObject(dib);
+    DeleteDC(mem);
+    ReleaseDC(nullptr, screen);
+    return true;
+}
+
+static const Hit* StorageHit(const std::vector<Hit>& hits, int id) {
+    for (const auto& hit : hits)
+        if (hit.id == id) return &hit;
+    return nullptr;
+}
+
+static bool StorageGeometryTest(std::wstring& detail) {
+    const float scales[] = {1.0f, 1.5f, 2.0f};
+    bool ok = true;
+    std::wstring why;
+    const float oldScale = g_scale;
+
+    for (float scale : scales) {
+        AppState st;
+        auto add = [&](wchar_t letter, const wchar_t* type, bool ssd, bool known) {
+            StorageDevice d;
+            d.root = std::wstring(1, letter) + L":\\";
+            d.label = std::wstring(L"TEST-") + (ssd ? L"SSD" : L"HDD");
+            d.typeName = type;
+            d.fileSystem = L"NTFS";
+            d.bus = ssd ? L"NVMe" : L"SATA";
+            d.model = L"matrix test volume";
+            d.total = 100ull << 30;
+            d.freeBytes = 40ull << 30;
+            d.accessible = true;
+            d.mediaKnown = known;
+            d.ssd = ssd;
+            st.storage.push_back(d);
+        };
+        // Eight rows force a scrollbar at every scale. C is mechanical, D solid-state,
+        // E removable, F unknown; G and H fill the first viewport, I and J the rest.
+        add(L'C', L"Fixed", false, true);
+        add(L'D', L"Fixed", true, true);
+        add(L'E', L"Removable", false, true);
+        add(L'F', L"Fixed", false, false);
+        add(L'G', L"Fixed", true, true);
+        add(L'H', L"Fixed", false, true);
+        add(L'I', L"Removable", true, true);
+        add(L'J', L"Fixed", false, true);
+
+        std::vector<Hit> hits;
+        if (!RenderStorageHits(st, scale, hits)) {
+            ok = false;
+            why += L"no bitmap at ";
+            why += std::to_wstring(scale);
+            why += L"; ";
+            continue;
+        }
+
+        wchar_t at[80];
+        swprintf(at, 80, L"%.0f%%", scale * 100.0f);
+        auto require = [&](bool condition, const wchar_t* what) {
+            if (condition) return;
+            ok = false;
+            why += at;
+            why += L" ";
+            why += what;
+            why += L"; ";
+        };
+
+        const Hit* c = StorageHit(hits, HitStorageRowBase + (L'C' - L'A'));
+        const Hit* d = StorageHit(hits, HitStorageRowBase + (L'D' - L'A'));
+        const Hit* e = StorageHit(hits, HitStorageRowBase + (L'E' - L'A'));
+        const Hit* f = StorageHit(hits, HitStorageRowBase + (L'F' - L'A'));
+        require(c && d && e && f, L"the four visible media rows have buttons");
+        require(c && c->enabled, L"the mechanical volume is actionable");
+        require(d && d->enabled, L"the solid-state volume is actionable");
+        require(e && e->enabled, L"the removable volume is actionable");
+        require(f && !f->enabled, L"unknown media is present but disabled");
+        require(st.storageScrollMax > 0, L"eight rows scroll");
+        require(st.storageThumb.top >= st.storageTrack.top &&
+                    st.storageThumb.bottom <= st.storageTrack.bottom &&
+                    st.storageThumb.bottom > st.storageThumb.top,
+                L"the scroll thumb stays inside its track");
+        require(st.storagePageStep > 0, L"the wheel page step is positive");
+
+        // One wheel notch, expressed in the same scaled row pitch the window uses. C
+        // scrolls out of the viewport; D is the first row still visible and must move up.
+        const int before = d ? (int)d->rect.top : 0;
+        st.scrollStorage = (int)std::lround(78.0 * scale);
+        hits.clear();
+        RenderStorageHits(st, scale, hits);
+        const Hit* moved = StorageHit(hits, HitStorageRowBase + (L'D' - L'A'));
+        require(moved && (int)moved->rect.top < before,
+                L"a wheel-sized scroll moves the row by its scaled pitch");
+
+        // The thumb at the end of its travel is lower and still inside the track.
+        st.scrollStorage = st.storageScrollMax;
+        hits.clear();
+        RenderStorageHits(st, scale, hits);
+        require(st.storageThumb.top > st.storageTrack.top &&
+                    st.storageThumb.bottom <= st.storageTrack.bottom,
+                L"dragging the thumb to the end stays inside the track");
+
+        // While defrag.exe runs the page must expose Cancel and disable Refresh and
+        // every volume button, not merely redraw them as disabled.
+        st.storageBusy = true;
+        st.storagePercent = 42;
+        st.storageAction = L"Defragmenting C:";
+        st.storageMessage = L"Defragmenting C: - 00:42 elapsed - 42%";
+        st.scrollStorage = 0;
+        hits.clear();
+        RenderStorageHits(st, scale, hits);
+        const Hit* cancel = StorageHit(hits, HitStorageCancel);
+        const Hit* refresh = StorageHit(hits, HitStorageRefresh);
+        const Hit* busyC = StorageHit(hits, HitStorageRowBase + (L'C' - L'A'));
+        require(cancel && cancel->enabled, L"Cancel is the enabled action while busy");
+        require(refresh && !refresh->enabled, L"Refresh is disabled while busy");
+        require(busyC && !busyC->enabled, L"volume buttons are disabled while busy");
+    }
+
+    g_scale = oldScale;
+    g_fonts.Create(oldScale);
+    detail = why.empty() ? L"100%, 150% and 200%: rows, scrollbar and Cancel hit-test" : why;
+    return ok;
+}
+
 static int RunSelfTest() {
     Out(L"Zanphar's WinSuite self-test");
     Out(L"==============================");
@@ -4231,6 +4602,38 @@ static int RunSelfTest() {
     }
     swprintf(buf, 256, L"%d volumes", (int)storage.size());
     Check(storageOk && hasFixed, L"all storage devices enumerated", buf);
+
+    // The page's buttons and their hit rects are checked at all three supported DPI
+    // scales with synthetic mechanical, solid-state, removable and unknown media. This
+    // is the geometry the window paints, not a parallel copy of its arithmetic.
+    std::wstring storageGeometryDetail;
+    Check(StorageGeometryTest(storageGeometryDetail),
+          L"Storage rows, scrollbar and Cancel hit-test at 100/150/200%",
+          storageGeometryDetail);
+
+    StorageDevice unknownMedia;
+    unknownMedia.root = L"Z:\\";
+    unknownMedia.typeName = L"Fixed";
+    unknownMedia.total = 1ull << 30;
+    unknownMedia.mediaKnown = false;
+    StorageDevice removableMedia;
+    removableMedia.root = L"Y:\\";
+    removableMedia.typeName = L"Removable";
+    removableMedia.total = 1ull << 30;
+    removableMedia.mediaKnown = true;
+    StorageDevice networkMedia;
+    networkMedia.root = L"X:\\";
+    networkMedia.typeName = L"Network";
+    networkMedia.total = 1ull << 30;
+    networkMedia.mediaKnown = true;
+    const std::wstring unknownRefusal = StorageOptimizeRefusal(unknownMedia);
+    const std::wstring networkRefusal = StorageOptimizeRefusal(networkMedia);
+    const std::wstring removableRefusal = StorageOptimizeRefusal(removableMedia);
+    const OptimizeOutcome unknownOutcome = OptimizeVolume(unknownMedia);
+    Check(!unknownRefusal.empty() && !networkRefusal.empty() && removableRefusal.empty() &&
+              !unknownOutcome.ok && !unknownOutcome.cancelled,
+          L"unknown and network media are refused before defrag.exe starts",
+          unknownRefusal + L" | " + networkRefusal);
 
     info = CollectSystemInfo();  // restore real figures for the rest of the run
 
@@ -4559,7 +4962,7 @@ static int RunSelfTest() {
 
     // The read-only agreement cannot lose a clause without this noticing.
     const std::wstring licence = kLicenseText;
-    bool licensee = licence.find(L"Copyright (c) 2026, Charles McDonald") != std::wstring::npos;
+    bool licensee = licence.find(L"Copyright (c) 2026-2027, Charles McDonald") != std::wstring::npos;
     bool grant = licence.find(L"Redistribution and use in source and binary forms") !=
                  std::wstring::npos;
     bool thirdClause = licence.find(L"3. Neither the name of the copyright holder") !=
@@ -4939,7 +5342,7 @@ static int RunSelfTest() {
     }
     swprintf(engineBuf, 256, L"%d catalogued, %d installed", (int)catalog.size(),
              installedBrowsers);
-    Check(catalog.size() >= 7, L"browser tracers catalogued", engineBuf);
+    Check(catalog.size() >= 8, L"browser tracers catalogued", engineBuf);
     Out(L"Browsers found: " + (browserNames.empty() ? std::wstring(L"none") : browserNames));
 
     if (installedBrowsers > 0) {
@@ -5188,6 +5591,69 @@ static bool RenderShot(const std::wstring& path, int w, int h, AppState& st) {
     return ok;
 }
 
+// Test-only DPI/media matrix for the Storage page. It renders the real paint path at
+// each supported scale with mechanical, solid-state, removable and unknown volumes,
+// plus one busy frame that proves the Cancel control is present.
+static int RunStorageShots(const std::wstring& dir) {
+    AppState st;
+    st.elevated = IsProcessElevated();
+    st.promptSuppressed = !st.elevated && PrefersStandardMode();
+    auto add = [&](wchar_t letter, const wchar_t* type, bool ssd, bool known) {
+        StorageDevice d;
+        d.root = std::wstring(1, letter) + L":\\";
+        d.label = std::wstring(L"TEST-") + (ssd ? L"SSD" : L"HDD");
+        d.typeName = type;
+        d.fileSystem = L"NTFS";
+        d.bus = ssd ? L"NVMe" : L"SATA";
+        d.model = L"matrix test volume";
+        d.total = 100ull << 30;
+        d.freeBytes = 40ull << 30;
+        d.accessible = true;
+        d.mediaKnown = known;
+        d.ssd = ssd;
+        st.storage.push_back(d);
+    };
+    add(L'C', L"Fixed", false, true);
+    add(L'D', L"Fixed", true, true);
+    add(L'E', L"Removable", false, true);
+    add(L'F', L"Fixed", false, false);
+    add(L'G', L"Fixed", true, true);
+    add(L'H', L"Fixed", false, true);
+    add(L'I', L"Removable", true, true);
+    add(L'J', L"Fixed", false, true);
+    st.page = Page::Storage;
+    st.storageMessage = L"Test matrix: HDD, SSD, removable and unknown media.";
+
+    bool ok = true;
+    for (float scale : {1.0f, 1.5f, 2.0f}) {
+        g_scale = scale;
+        g_fonts.Create(scale);
+        const int w = (int)std::lround(1024.0 * scale);
+        const int h = (int)std::lround(768.0 * scale);
+        wchar_t name[64];
+        swprintf(name, 64, L"storage-matrix-%.0f.bmp", scale * 100.0f);
+        const std::wstring path = dir + L"\\" + name;
+        bool rendered = RenderShot(path, w, h, st);
+        Out(std::wstring(rendered ? L"wrote " : L"failed ") + path);
+        ok = ok && rendered;
+
+        st.storageBusy = true;
+        st.storagePercent = 42;
+        st.storageAction = L"Defragmenting C:";
+        st.storageMessage = L"Defragmenting C: - 00:42 elapsed - 42%";
+        swprintf(name, 64, L"storage-busy-%.0f.bmp", scale * 100.0f);
+        const std::wstring busyPath = dir + L"\\" + name;
+        rendered = RenderShot(busyPath, w, h, st);
+        Out(std::wstring(rendered ? L"wrote " : L"failed ") + busyPath);
+        ok = ok && rendered;
+        st.storageBusy = false;
+        st.storagePercent = -1;
+        st.storageAction.clear();
+        st.storageMessage = L"Test matrix: HDD, SSD, removable and unknown media.";
+    }
+    return ok ? 0 : 1;
+}
+
 static int RunShots(const std::wstring& dir) {
     g_scale = 1.0f;
     g_fonts.Create(g_scale);
@@ -5266,6 +5732,7 @@ static int RunShots(const std::wstring& dir) {
         {Page::Services, L"services.bmp"},
         {Page::Tasks, L"tasks.bmp"},
         {Page::System, L"system.bmp"},
+        {Page::Storage, L"storage.bmp"},
         {Page::Settings, L"settings.bmp"},
     };
     bool ok = true;
@@ -5375,6 +5842,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE, LPSTR, int) {
     bool servicetestNoop = false;
     bool noElevate = false;
     std::wstring shotDir;
+    std::wstring storageShotDir;
     std::vector<std::wstring> forwarded;
     for (int i = 1; i < argc; ++i) {
         std::wstring arg = argv[i];
@@ -5386,6 +5854,14 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE, LPSTR, int) {
             shotDir = argv[++i];
             forwarded.push_back(arg);
             forwarded.push_back(shotDir);
+            continue;
+        }
+        if (arg == L"--storage-shots" && i + 1 < argc) {
+            storageShotDir = argv[++i];
+            continue;
+        }
+        if (arg == L"--selftest-log" && i + 1 < argc) {
+            g_logPath = argv[++i];
             continue;
         }
         forwarded.push_back(arg);
@@ -5400,7 +5876,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE, LPSTR, int) {
     }
 
     bool elevated = IsProcessElevated();
-    bool guiMode = !selftest && !servicetest && shotDir.empty();
+    bool guiMode = !selftest && !servicetest && shotDir.empty() && storageShotDir.empty();
     bool promptSuppressed = !elevated && PrefersStandardMode();
     if (guiMode && !elevated && !noElevate && !promptSuppressed) {
         DWORD launchError = 0;
@@ -5448,6 +5924,12 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE, LPSTR, int) {
     if (!shotDir.empty()) {
         InitOutput();
         result = RunShots(shotDir);
+        UiShutdown();
+        return result;
+    }
+    if (!storageShotDir.empty()) {
+        InitOutput();
+        result = RunStorageShots(storageShotDir);
         UiShutdown();
         return result;
     }

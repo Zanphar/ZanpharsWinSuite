@@ -26,9 +26,11 @@ no code is shared with the original.
   `NtSetSystemInformation`. 'Free RAM when boosting' runs the same pass
   as the boost kicks in, and 'Automatically free memory' fires it
   whenever RAM load reaches 80%.
-- **One window, ready to run.** A dark, DPI-aware dashboard. Minimizes to
-  the tray; single-instance; self-relaunches with a UAC prompt (declining
-  keeps instrumentation alive, boost tweaks are rejected).
+- **One window, ready to run.** A dark, DPI-aware dashboard that can be
+  resized or maximized: cards and buttons follow the client area, and it never
+  shrinks below its 660 x 752 design size, so labels and hit targets stay
+  intact. Minimizes to the tray; single-instance; self-relaunches with a UAC
+  prompt (declining keeps instrumentation alive, boost tweaks are rejected).
 
 ## Project layout
 
@@ -103,4 +105,4 @@ boost state and restore records live in `systemturbo.ini` next to it.
 
 ## License
 
-BSD 3-Clause, copyright 2026 Charles McDonald — see `LICENSE.md`.
+BSD 3-Clause, copyright 2026-2027 Charles McDonald — see `LICENSE.md`.

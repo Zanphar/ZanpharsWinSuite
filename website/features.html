@@ -29,16 +29,16 @@
       <a href="privacy.html" data-nav="privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>Privacy</a>
     </nav>
     <div class="rail-foot">
-      <strong>Version 0.2.4</strong>
+      <strong>Version 2.0.0</strong>
       <p>Native Win32 &middot; no telemetry</p>
     </div>
   </aside>
 
   <main id="main">
     <header class="reveal">
-      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Fourteen pages</p>
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Fifteen pages</p>
       <h1>Every page, and what it <span class="accent">actually does</span>.</h1>
-      <p class="lead">The suite is one window with fourteen pages, and each one is a small, complete tool: it reads the machine, shows what it found, asks before it changes anything, and can put back what it changed.</p>
+      <p class="lead">The suite is one window with fifteen pages, and each one is a small, complete tool: it reads the machine, shows what it found, asks before it changes anything, and can put back what it changed.</p>
       <div class="toc" aria-label="Jump to a page">
         <a href="#dashboard">Dashboard</a>
         <a href="#cleanup">Cleanup</a>
@@ -52,6 +52,7 @@
         <a href="#large-files">Large files</a>
         <a href="#startup">Startup &amp; Deactivate</a>
         <a href="#system">System</a>
+        <a href="#storage">Storage</a>
         <a href="#settings">Settings</a>
         <a href="#engines">The four engines</a>
       </div>
@@ -252,6 +253,22 @@
       </figure>
     </section>
 
+    <section class="feature flip reveal" id="storage">
+      <div class="feature-body">
+        <p class="kicker">Storage</p>
+        <h2>Defragment or retrim, with the drive named first</h2>
+        <p class="sub">Every local volume Windows reports, with the mode its media actually needs: <strong>Defragment</strong> (<code>/D /H</code>) on a mechanical disk and <strong>TRIM</strong> (<code>/L</code>) on a solid-state drive. Optical and network volumes are not offered a disk operation at all.</p>
+        <ul>
+          <li><strong>A confirmation per volume.</strong> The dialog names the drive, its label, the media and the exact mode before Windows asks for administrator rights; the default answer is No.</li>
+          <li><strong>One operation, fully interruptible.</strong> Every Storage action is disabled while <code>defrag.exe</code> runs. The page shows a progress bar, the percentage the defragmenter reports and elapsed time, and <strong>Cancel</strong> terminates the child process and re-enables the page.</li>
+          <li><strong>Unknown media is left alone.</strong> A volume that cannot say whether it is solid-state or mechanical is shown as <strong>Unavailable</strong> rather than being sent through the wrong mode. The Windows defragmenter is resolved from System32, not from a stray executable beside the suite.</li>
+        </ul>
+      </div>
+      <figure class="shot feature-media">
+        <img src="assets/img/pages/storage.png" width="1008" height="729" alt="Storage page listing local volumes with Defragment, TRIM and disabled Unavailable buttons and media details." loading="lazy">
+      </figure>
+    </section>
+
     <section class="feature reveal" id="settings">
       <div class="feature-body">
         <p class="kicker">Settings</p>
@@ -294,7 +311,7 @@
     <section class="cta reveal">
       <div>
         <h2>See it on your own machine</h2>
-        <p>Version 0.2.4 &middot; Windows 10/11 x64 &middot; no installer &middot; BSD 3-Clause.</p>
+        <p>Version 2.0.0 &middot; Windows 10/11 x64 &middot; no installer &middot; BSD 3-Clause.</p>
       </div>
       <div class="actions">
         <a class="btn" href="download.html">Download</a>
@@ -303,7 +320,7 @@
     </section>
 
     <footer class="site">
-      <span>Copyright © 2026 Charles McDonald. Licensed under the BSD 3-Clause License.</span>
+      <span>Copyright © 2026-2027 Charles McDonald. Licensed under the BSD 3-Clause License.</span>
       <nav aria-label="Footer">
         <a href="index.html">Home</a>
         <a href="download.html">Download</a>

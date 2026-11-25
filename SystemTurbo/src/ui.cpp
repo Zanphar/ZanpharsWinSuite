@@ -53,6 +53,10 @@ constexpr int kClientH   = 752;
 constexpr int kOptCount  = 4;
 constexpr int kProcCount = 3;
 
+// The layout is authored against this 660 x 752 canvas. The window may grow
+// in both directions, but never shrinks below it, so every card and label
+// keeps its designed room.
+
 struct Layout {
     RECT Client;
     RECT HeroCard, HeroLabel, HeroStatus, HeroSub, Toggle;
@@ -63,32 +67,28 @@ struct Layout {
     int  width = 0, height = 0;
 };
 
-namespace grid {
-
-RECT At(int x, int y, int w, int h) {
-    return RECT{ theme::Scale(x), theme::Scale(y),
-                 theme::Scale(x + w), theme::Scale(y + h) };
-}
-
-}  // namespace grid
-
-Layout Compose() {
-    using namespace grid;
+Layout Compose(int clientW, int clientH) {
     Layout L{};
-    L.width    = theme::Scale(kClientW);
-    L.height   = theme::Scale(kClientH);
+    L.width    = std::max(clientW, theme::Scale(kClientW));
+    L.height   = std::max(clientH, theme::Scale(kClientH));
     L.Client   = { 0, 0, L.width, L.height };
 
-    L.HeroCard   = At(20, 64, 620, 92);
+    const int side = theme::Scale(20);
+    const int contentRight = L.width - side;
+
+    L.HeroCard   = RECT{ side, theme::Scale(64), contentRight, theme::Scale(156) };
     L.HeroLabel  = RECT{ L.HeroCard.left + theme::Scale(16),
                          L.HeroCard.top  + theme::Scale(12), 0, 0 };
     L.HeroStatus = RECT{ L.HeroCard.left + theme::Scale(16),
                          L.HeroCard.top  + theme::Scale(32), 0, 0 };
     L.HeroSub    = RECT{ L.HeroCard.left + theme::Scale(16),
                          L.HeroCard.top  + theme::Scale(62), 0, 0 };
-    L.Toggle     = At(20 + 620 - 16 - 56, 64 + 32, 56, 28);
+    L.Toggle     = RECT{ L.HeroCard.right - theme::Scale(16 + 56),
+                         L.HeroCard.top + theme::Scale(32),
+                         L.HeroCard.right - theme::Scale(16),
+                         L.HeroCard.top + theme::Scale(32 + 28) };
 
-    L.OptionCard = At(20, 168, 620, 224);
+    L.OptionCard = RECT{ side, theme::Scale(168), contentRight, theme::Scale(392) };
     for (int i = 0; i < kOptCount; ++i) {
         const int top = L.OptionCard.top + theme::Scale(38 + 44 * i);
         L.Rows[i] = RECT{ L.OptionCard.left + theme::Scale(12), top,
@@ -96,11 +96,17 @@ Layout Compose() {
                           top + theme::Scale(40) };
     }
 
-    L.Buttons[0] = At(36, 404, 150, 34);
-    L.Buttons[1] = At(196, 404, 170, 34);
-    L.Buttons[2] = At(376, 404, 170, 34);
+    const int buttonGap = theme::Scale(10);
+    const int buttonW = (contentRight - side - 2 * buttonGap) / 3;
+    for (int i = 0; i < 3; ++i) {
+        const int left = side + i * (buttonW + buttonGap);
+        L.Buttons[i] = RECT{ left, theme::Scale(404), left + buttonW,
+                             theme::Scale(438) };
+    }
 
-    L.RamCard  = At(20, 450, 620, 286);
+    const int ramTop = theme::Scale(450);
+    const int ramBottom = std::max(ramTop + theme::Scale(286), L.height - theme::Scale(16));
+    L.RamCard  = RECT{ side, ramTop, contentRight, ramBottom };
     const int rx = L.RamCard.left + theme::Scale(18);
     const int rw = L.RamCard.right - L.RamCard.left - theme::Scale(36);
     const int ry = L.RamCard.top;
@@ -295,11 +301,11 @@ void Paint(HDC hdc, const Layout& L) {
     }
     {
         const RECT title{ theme::Scale(68), theme::Scale(14),
-                          theme::Scale(680), theme::Scale(44) };
+                          L.width - theme::Scale(20), theme::Scale(44) };
         DrawTextC(hdc, kAppTitle, title, theme::Font(theme::FontKind::Title), P.Text,
                   DT_LEFT | DT_VCENTER | DT_SINGLELINE);
         const RECT sub{ theme::Scale(70), theme::Scale(46),
-                        theme::Scale(720), theme::Scale(64) };
+                        L.width - theme::Scale(20), theme::Scale(64) };
         DrawTextC(hdc, L"Unties RAM and power so your apps get the machine.",
                   sub, theme::Font(theme::FontKind::Small), P.TextDim,
                   DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
@@ -560,7 +566,7 @@ void TryFree(HWND hwnd) {
 }
 
 void SizeAndCenter(HWND hwnd) {
-    Layout L = Compose();
+    Layout L = Compose(theme::Scale(kClientW), theme::Scale(kClientH));
     const DWORD style = (DWORD)GetWindowLongPtrW(hwnd, GWL_STYLE);
     RECT r{ 0, 0, L.width, L.height };
     AdjustWindowRect(&r, style, FALSE);
@@ -634,14 +640,34 @@ LRESULT WINAPI WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         return 0;
     }
 
+    case WM_GETMINMAXINFO: {
+        auto* mmi = reinterpret_cast<MINMAXINFO*>(lParam);
+        RECT r{ 0, 0, theme::Scale(kClientW), theme::Scale(kClientH) };
+        AdjustWindowRectEx(&r, (DWORD)GetWindowLongPtrW(hwnd, GWL_STYLE), FALSE,
+                           (DWORD)GetWindowLongPtrW(hwnd, GWL_EXSTYLE));
+        mmi->ptMinTrackSize.x = r.right - r.left;
+        mmi->ptMinTrackSize.y = r.bottom - r.top;
+        return 0;
+    }
+
+    case WM_SIZE:
+        if (wParam != SIZE_MINIMIZED) InvalidateRect(hwnd, nullptr, FALSE);
+        return 0;
+
     case WM_ERASEBKGND:
         return 1;
 
     case WM_PAINT: {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
-        const Layout L = Compose();
-        const int w = L.width, h = L.height;
+        RECT rc{};
+        GetClientRect(hwnd, &rc);
+        const int w = rc.right - rc.left, h = rc.bottom - rc.top;
+        if (w <= 0 || h <= 0) {
+            EndPaint(hwnd, &ps);
+            return 0;
+        }
+        const Layout L = Compose(w, h);
 
         HDC mem = CreateCompatibleDC(hdc);
         HBITMAP bm = CreateCompatibleBitmap(hdc, w, h);
@@ -815,7 +841,8 @@ int Run(HINSTANCE instance, int cmdShow) {
 
     const HWND hwnd = CreateWindowExW(
         WS_EX_APPWINDOW, kWindowClass, kAppTitle,
-        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX |
+            WS_THICKFRAME,
         CW_USEDEFAULT, CW_USEDEFAULT,
         theme::Scale(kClientW), theme::Scale(kClientH),
         nullptr, nullptr, instance, nullptr);

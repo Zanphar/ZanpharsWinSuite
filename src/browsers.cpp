@@ -190,6 +190,37 @@ std::vector<BrowserEntry> BuildBrowserCatalog() {
         L"edge", L"Microsoft Edge", L"LOCALAPPDATA",
         L"Microsoft\\Edge\\User Data\\Default",
         ChromiumProfile(L"LOCALAPPDATA", L"Microsoft\\Edge\\User Data\\Default"), edgeProcs));
+
+    // IE has no Chromium-style profile directory. Its history, cache and cookies
+    // live in WinINet's shared Windows folders; WebCache is the database modern
+    // Windows uses for IE history, and Recovery holds the last session. The
+    // Windows folder is the common base, so the browser is listed wherever IE
+    // exists as part of Windows.
+    BrowserEntry ie;
+    ie.key = L"ie";
+    ie.name = L"Internet Explorer";
+    ie.processes = {L"iexplore.exe"};
+    const std::wstring localWin = EnvDir(L"LOCALAPPDATA") + L"\\Microsoft\\Windows";
+    const std::wstring roamingWin = EnvDir(L"APPDATA") + L"\\Microsoft\\Windows";
+    ie.installed = !EnvDir(L"LOCALAPPDATA").empty() && IsDir(localWin);
+    ie.detail = ie.installed ? localWin : L"";
+    if (ie.installed) {
+        auto addTrace = [&](const wchar_t* label, std::vector<std::wstring> paths) {
+            BrowserTrace trace;
+            trace.label = label;
+            trace.paths = std::move(paths);
+            ie.traces.push_back(trace);
+        };
+        addTrace(L"History", {localWin + L"\\History", localWin + L"\\WebCache"});
+        std::vector<std::wstring> cookiePaths = {localWin + L"\\INetCookies"};
+        if (!EnvDir(L"APPDATA").empty())
+            cookiePaths.push_back(roamingWin + L"\\Cookies");
+        addTrace(L"Cookies", cookiePaths);
+        addTrace(L"Cache", {localWin + L"\\INetCache"});
+        addTrace(L"Sessions", {localWin + L"\\Internet Explorer\\Recovery"});
+    }
+    catalog.push_back(ie);
+
     catalog.push_back(MakeChromium(
         L"brave", L"Brave", L"LOCALAPPDATA",
         L"BraveSoftware\\Brave-Browser\\User Data\\Default",
