@@ -1,10 +1,10 @@
-Zanphar's WinSuite v0.2.4
-4 free Win tune-up tools,
-plain C++17 / Win32, no
-third-party DLLs. Includes
-Browser Cleaner, DNS
-Protect, Smart RAM,
-System Turbo + suite
-window. Win10/11 x64.
-BSD 3-Clause (c) 2026
-Charles McDonald
+Zanphar's WinSuite v2.0.0
+9 free Windows tune-up
+tools: Browser Cleaner, DNS
+Protect, Smart RAM, System
+Turbo, HardWin, PCSpeedTest,
+Home Policy, Tuning Wizard,
+Connection Utility. Plain
+C++17 / Win32, no third-party
+DLLs. Win10/11 x64. BSD
+3-Clause (c) 2026 Charles McDonald

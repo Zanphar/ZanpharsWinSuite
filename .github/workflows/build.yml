@@ -77,10 +77,10 @@ jobs:
       - name: Build and package the suite
         shell: cmd
         # The same one command as on a workstation: release.bat /build runs
-        # build_all.bat /clean (empty bin\ and staging area, then all four
-        # programs) and packages only if that build succeeded. So this step
-        # exercises the build and the release path together, and the archive
-        # it writes cannot contain a binary from an earlier run.
+        # build_all.bat /clean (empty bin\ and staging area, then every
+        # program and the suite) and packages only if that build succeeded, so
+        # this step exercises the build and the release path together and the
+        # archive it writes cannot contain a binary from an earlier run.
         # It exits 1 if a project fails to compile, if an output imports
         # libgcc, libstdc++ or libwinpthread, or if packaging fails.
         run: |

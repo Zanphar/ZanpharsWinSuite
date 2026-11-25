@@ -525,8 +525,8 @@ window. Pages that change the machine
 actions Windows refuses to a standard user) ask for elevation once and restart elevated,
 rather than running at reduced rights.
 
-Building is unchanged: `build_all.bat` builds the four programs, `build.bat`
-builds the suite. The standalone executables still exist on their own.
+Building is unchanged: `build_all.bat` builds every program and then the suite
+through `build.bat`. The standalone executables still exist on their own.
 
 ---
 
@@ -540,12 +540,13 @@ builds the suite. The standalone executables still exist on their own.
 Removes tracking data from Internet Explorer (history, cookies, cache and
 session recovery), Chromium-based browsers (Chrome, Edge, Brave, Vivaldi,
 Opera, Opera GX) and Firefox (history, cookies, autofill forms, cached files
-and session restore). IE is read from WinINet's shared Windows folders (History
-and WebCache, INetCache, INetCookies) plus its recovery folder; it has no
-Chromium-style profile, so those traces are resolved from
-LocalAppData/RoamingAppData directly. It detects running browsers and offers to
-close them first, then reports what was measured and deleted, per browser and
-per trace item.
+and session restore). IE is read from WinINet's shared Windows folders (the
+dedicated History folder, INetCache and INetCookies) plus its recovery folder;
+WebCache is deliberately not deleted because it also holds cookies and other
+WinINet state. IE has no Chromium-style profile, so those traces are resolved
+from LocalAppData/RoamingAppData directly. It detects running browsers and
+offers to close them first, then reports what was measured and deleted, per
+browser and per trace item.
 
 - **Storage engine** — inspect/delete trace files via `std::filesystem`,
   including the SQLite sidecars (`-journal`, `-wal`, `-shm`) that hold the
