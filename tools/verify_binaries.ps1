@@ -31,14 +31,14 @@ Set-StrictMode -Version Latest
 # executable is not self-contained.
 $OsDlls = @(
     'advapi32.dll', 'bcrypt.dll', 'comctl32.dll', 'comdlg32.dll', 'crypt32.dll',
-    'd2d1.dll', 'd3d11.dll', 'dbghelp.dll', 'dnsapi.dll', 'dwmapi.dll',
+    'd2d1.dll', 'd3d11.dll', 'd3dcompiler_47.dll', 'dbghelp.dll', 'dnsapi.dll', 'dwmapi.dll',
     'dwrite.dll', 'dxgi.dll', 'gdi32.dll', 'gdiplus.dll', 'imm32.dll',
     'iphlpapi.dll', 'kernel32.dll', 'msimg32.dll', 'msvcrt.dll', 'ntdll.dll',
     'ole32.dll', 'oleacc.dll', 'oleaut32.dll', 'powrprof.dll', 'psapi.dll',
     'rpcrt4.dll', 'secur32.dll', 'setupapi.dll', 'shcore.dll', 'shell32.dll',
     'shlwapi.dll', 'ucrtbase.dll', 'user32.dll', 'userenv.dll', 'uxtheme.dll',
     'version.dll', 'wer.dll', 'winhttp.dll', 'wininet.dll', 'winmm.dll',
-    'wintrust.dll', 'ws2_32.dll', 'wtsapi32.dll'
+    'wintrust.dll', 'wlanapi.dll', 'ws2_32.dll', 'wtsapi32.dll'
 )
 # API sets are virtual DLLs resolved by the loader from a contract name.
 $OsDllPattern = '^api-ms-win-[a-z0-9\-]+\.dll$'
