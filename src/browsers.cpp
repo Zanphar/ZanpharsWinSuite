@@ -192,10 +192,11 @@ std::vector<BrowserEntry> BuildBrowserCatalog() {
         ChromiumProfile(L"LOCALAPPDATA", L"Microsoft\\Edge\\User Data\\Default"), edgeProcs));
 
     // IE has no Chromium-style profile directory. Its history, cache and cookies
-    // live in WinINet's shared Windows folders; WebCache is the database modern
-    // Windows uses for IE history, and Recovery holds the last session. The
-    // Windows folder is the common base, so the browser is listed wherever IE
-    // exists as part of Windows.
+    // live in WinINet's shared Windows folders; Recovery holds the last session.
+    // WebCache is shared by WinINet and can hold cookies and other state, so it is
+    // deliberately not a trace here: deleting it with History would clear cookies
+    // even when the Cookies item is unchecked. The Windows folder is the common
+    // base, so the browser is listed wherever IE exists as part of Windows.
     BrowserEntry ie;
     ie.key = L"ie";
     ie.name = L"Internet Explorer";
@@ -211,7 +212,7 @@ std::vector<BrowserEntry> BuildBrowserCatalog() {
             trace.paths = std::move(paths);
             ie.traces.push_back(trace);
         };
-        addTrace(L"History", {localWin + L"\\History", localWin + L"\\WebCache"});
+        addTrace(L"History", {localWin + L"\\History"});
         std::vector<std::wstring> cookiePaths = {localWin + L"\\INetCookies"};
         if (!EnvDir(L"APPDATA").empty())
             cookiePaths.push_back(roamingWin + L"\\Cookies");

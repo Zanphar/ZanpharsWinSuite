@@ -5345,6 +5345,45 @@ static int RunSelfTest() {
     Check(catalog.size() >= 8, L"browser tracers catalogued", engineBuf);
     Out(L"Browsers found: " + (browserNames.empty() ? std::wstring(L"none") : browserNames));
 
+    // IE's WebCache is shared by WinINet and can hold cookies as well as history.
+    // The Browsers page selects a whole browser, so there is no safe per-trace
+    // switch for it: it must not appear in the catalog at all. History owns only
+    // the dedicated History folder; Cookies keeps its separate INetCookies path.
+    bool ieFound = false;
+    bool ieInstalled = false;
+    bool ieHistoryOnly = false;
+    bool ieCookiesPresent = false;
+    bool ieWebCacheAbsent = true;
+    for (const auto& entry : catalog) {
+        if (entry.key != L"ie") continue;
+        ieFound = true;
+        ieInstalled = entry.installed;
+        for (const auto& trace : entry.traces) {
+            for (const auto& path : trace.paths)
+                if (path.find(L"WebCache") != std::wstring::npos) ieWebCacheAbsent = false;
+            if (trace.label == L"History") {
+                ieHistoryOnly = trace.paths.size() == 1 &&
+                                trace.paths[0].size() >= 8 &&
+                                trace.paths[0].compare(trace.paths[0].size() - 8, 8,
+                                                        L"\\History") == 0;
+            } else if (trace.label == L"Cookies") {
+                for (const auto& path : trace.paths)
+                    if (path.find(L"INetCookies") != std::wstring::npos)
+                        ieCookiesPresent = true;
+            }
+        }
+    }
+    if (ieFound && ieInstalled) {
+        Check(ieHistoryOnly && ieCookiesPresent && ieWebCacheAbsent,
+              L"IE History never deletes shared WebCache",
+              std::wstring(L"History folder only: ") + (ieHistoryOnly ? L"yes" : L"no") +
+                  L", Cookies path: " + (ieCookiesPresent ? L"yes" : L"no") +
+                  L", WebCache absent: " + (ieWebCacheAbsent ? L"yes" : L"no"));
+    } else {
+        Skip(L"IE History never deletes shared WebCache",
+             L"Internet Explorer is not installed on this machine");
+    }
+
     if (installedBrowsers > 0) {
         BrowserEntry probe;
         for (const auto& entry : catalog)

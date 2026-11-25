@@ -144,11 +144,11 @@ static const TraceItem kFirefoxItems[] = {
 
 // IE keeps its data outside a Chromium-style profile: WinINet owns the history,
 // cache and cookies, and the recovery folder holds the last session. WebCache is
-// the database modern Windows uses for IE's history, so it belongs with History.
+// shared by WinINet and can hold cookies and other state, so History is limited to
+// the History folder; deleting WebCache while Cookies is unchecked is not safe.
 static const TraceItem kInternetExplorerItems[] = {
     { L"History",
-      { { TraceKind::Folder, L"Microsoft\\Windows\\History", TraceRoot::LocalAppData },
-        { TraceKind::Folder, L"Microsoft\\Windows\\WebCache", TraceRoot::LocalAppData } } },
+      { { TraceKind::Folder, L"Microsoft\\Windows\\History", TraceRoot::LocalAppData } } },
     { L"Cookies",
       { { TraceKind::Folder, L"Microsoft\\Windows\\INetCookies", TraceRoot::LocalAppData },
         { TraceKind::Folder, L"Microsoft\\Windows\\Cookies", TraceRoot::RoamingAppData } } },
@@ -217,6 +217,41 @@ static std::vector<BrowserDef> BuildCatalog() {
           L"Mozilla\\Firefox\\Profiles",              {0xFF,0x8A,0x3C}, L"FF", {} },
          kFirefoxItems, CountOf(kFirefoxItems));
     return list;
+}
+
+// Read-only catalog check for the command-line --selftest path. It proves the IE
+// History item owns only the History folder and that no IE trace still points at
+// WinINet's shared WebCache database (which can also hold cookies).
+static bool CatalogSelfTest() {
+    bool found = false;
+    bool historyOnly = false;
+    bool cookiesPresent = false;
+    bool webCacheAbsent = true;
+    for (const BrowserDef& def : BuildCatalog()) {
+        if (std::wstring(def.name) != L"Internet Explorer") continue;
+        found = true;
+        bool hasHistory = false;
+        bool hasCookies = false;
+        for (const TraceItem& item : def.items) {
+            for (const TracePath& path : item.paths) {
+                const std::wstring rel = path.rel;
+                if (rel.find(L"WebCache") != std::wstring::npos) webCacheAbsent = false;
+            }
+            if (std::wstring(item.label) == L"History") {
+                hasHistory = item.paths.size() == 1 &&
+                             item.paths[0].root == TraceRoot::LocalAppData &&
+                             std::wstring(item.paths[0].rel) ==
+                                 L"Microsoft\\Windows\\History";
+            } else if (std::wstring(item.label) == L"Cookies") {
+                for (const TracePath& path : item.paths)
+                    if (std::wstring(path.rel).find(L"INetCookies") != std::wstring::npos)
+                        hasCookies = true;
+            }
+        }
+        historyOnly = hasHistory;
+        cookiesPresent = hasCookies;
+    }
+    return found && historyOnly && cookiesPresent && webCacheAbsent;
 }
 
 // ============================================================================
@@ -1220,6 +1255,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 // ============================================================================
 
 int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nCmdShow) {
+    const std::wstring command = GetCommandLineW();
+    if (command.find(L"--selftest") != std::wstring::npos)
+        return CatalogSelfTest() ? 0 : 1;
+
     // Catalog + initial state: History / Cookies / Autofill / Cache checked;
     // Passwords and Session restore are opt-in.
     g.catalog = BuildCatalog();
@@ -1266,7 +1305,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nCmdShow) {
 
     // Off-screen render + exit, for automated UI inspection.
     {
-        const std::wstring cmd = GetCommandLineW();
+        const std::wstring& cmd = command;
         const size_t at = cmd.find(L"--shot=");
         if (at != std::wstring::npos) {
             std::wstring path = cmd.substr(at + 7);
